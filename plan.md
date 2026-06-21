@@ -94,12 +94,12 @@
 
 Día 5 — Autenticación
 
-- [ ] Instalar NextAuth.js + @auth/prisma-adapter
-- [ ] Configurar proveedor Google OAuth (crear credenciales en Google Cloud Console)
-- [ ] Crear lib/auth/auth.config.ts
-- [ ] Configurar callbacks de sesión (incluir userId en la sesión)
-- [ ] Middleware (middleware.ts) para proteger rutas de (dashboard)
-- [ ] Pantalla de login simple (logo + botón "Continuar con Google", sin pulir diseño aún)
+- [x] Instalar NextAuth.js + @auth/prisma-adapter
+- [x] Configurar proveedor Google OAuth (crear credenciales en Google Cloud Console)
+- [x] Crear lib/auth/auth.config.ts
+- [x] Configurar callbacks de sesión (incluir userId en la sesión)
+- [x] Proxy (proxy.ts) para proteger rutas de (dashboard) — Next.js 16 renombró middleware.ts a proxy.ts
+- [x] Pantalla de login simple (logo + botón "Continuar con Google", sin pulir diseño aún)
 - [ ] Probar login completo end-to-end en local
 - [ ] Probar login en el entorno de Vercel (variables de entorno de producción configuradas)
 
