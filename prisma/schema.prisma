@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// ENUMS
+//
+enum Urgency {
+  NOW
+  TODAY
+  MARGIN
+}
+
+enum EmotionalType {
+  SATISFYING
+  NORMAL
+  BORING
+  DRAINING
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  PAUSED
+}
+
+enum PetMood {
+  HAPPY
+  NEUTRAL
+  SAD
+}
+
+enum ShopCategory {
+  PET
+  ANIMATION
+  DECORATION
+  ACCESSORY
+}
+
+//
+// USER (core identity + onboarding + burnout system)
+//
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+
+  // onboarding
+  onboardingWorkType   String?
+  onboardingDailyTime  Int?
+  onboardingFocusMode  Boolean @default(false)
+  notificationsEnabled Boolean @default(true)
+  onboardingCompleted  Boolean @default(false)
+
+  // burnout system (interno — no confundir con el progreso del gato/usuario,
+  // no se muestra como métrica de "fallo" en la UI, ver CONTEXT.md)
+  energy  Int @default(100)
+  burnout Int @default(0)
+
+  // relations
+  tasks        Task[]
+  pet          Pet?
+  gamification GamificationState?
+  inventory    InventoryItem[]
+  streak       Streak?
+  rewardLogs   RewardLog[]
+}
+
+//
+// TASKS (core product loop)
+//
+model Task {
+  id     String @id @default(cuid())
+  userId String
+
+  title            String
+  urgency          Urgency
+  emotionalType    EmotionalType
+  estimatedMinutes Int?
+  status           TaskStatus @default(TODO)
+
+  // drag & drop ordering — siempre recalculado por la app (createTask /
+  // reorderTasks), el default solo evita errores en runtime si algo lo crea
+  // sin pasar order explícito
+  order Int @default(0)
+
+  // lifecycle tracking
+  startedAt   DateTime?
+  completedAt DateTime?
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, order])
+}
+
+//
+// GAMIFICATION CORE (único sistema de progreso: XP + coins + daily loop)
+//
+model GamificationState {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  coins Int @default(0)
+  xp    Int @default(0)
+  level Int @default(1)
+
+  dailyProgress Int @default(0)
+  // resetea la barra de progreso diaria (medianoche / nuevo día de uso)
+  lastActivityDate DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+//
+// PET (acompañante emocional — solo mood, sin progreso propio ni skin enum.
+// El skin/mascota activa se deriva de InventoryItem + ShopItem, no de aquí)
+//
+model Pet {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  currentMood PetMood @default(NEUTRAL)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+//
+// STREAK (source of truth de la racha)
+//
+model Streak {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+  // mantiene la cadena de racha, distinto de GamificationState.lastActivityDate
+  lastCompletedDate DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+//
+// SHOP SYSTEM
+//
+model ShopItem {
+  id       String       @id @default(cuid())
+  name     String
+  category ShopCategory
+  price    Int
+  imageUrl String
+  isActive Boolean      @default(true)
+
+  inventory InventoryItem[]
+}
+
+//
+// INVENTORY — también es la fuente de verdad de qué mascota/skin está activa.
+// Para el gato gratuito de cada usuario nuevo: seedear un ShopItem
+// (category=PET, price=0) y crear su InventoryItem con isEquipped=true
+// en el onboarding.
+//
+model InventoryItem {
+  id         String   @id @default(cuid())
+  userId     String
+  shopItemId String
+  isEquipped Boolean  @default(false)
+  unlockedAt DateTime @default(now())
+  equippedAt DateTime?
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItem ShopItem @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shopItemId])
+  @@index([userId, isEquipped])
+}
+
+//
+// REWARD SYSTEM (audit + progression control)
+//
+model RewardLog {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
