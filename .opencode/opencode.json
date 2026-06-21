@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md", "CONTEXT.md", "plan.md"],
+  "agent": {
+    "architect": { "model": "deepseek/deepseek-v4-pro", "mode": "subagent" },
+    "builder": { "model": "moonshot/kimi-k2.7-code", "mode": "subagent" },
+    "designer": { "model": "zhipu/glm-5.2", "mode": "subagent" },
+    "refactorer": { "model": "qwen/qwen-3.7-max", "mode": "subagent" },
+    "fixer": { "model": "deepseek/deepseek-v4-pro", "mode": "subagent" },
+    "docs": { "model": "zhipu/glm-5.2", "mode": "subagent" },
+    "translator": { "model": "zhipu/glm-5.2", "mode": "subagent" }
+  }
+}
