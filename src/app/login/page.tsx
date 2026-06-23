@@ -1,6 +1,11 @@
 import { signIn } from "@/lib/auth/auth.config";
 
-export default function LoginPage() {
+export default async function LoginPage(props: {
+  searchParams?: Promise<{ callbackUrl?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const callbackUrl = searchParams?.callbackUrl || "/home";
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8">
       <div className="flex flex-col items-center gap-2">
