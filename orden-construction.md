@@ -17,42 +17,42 @@
 
 ## Fase 1 — Home (valida Shell + los dos componentes base)
 
-- [ ] `PetWidget`
-  - [ ] 3 estados de mood: feliz / neutral / triste (estático)
-  - [ ] Prop de tamaño preparada (`full` / `compact`) aunque hoy solo se use `full`
-  - [ ] Globo de texto motivacional encima (frases hardcodeadas)
-- [ ] `TaskCard`
-  - [ ] Estado normal / urgente / completada (visual diferenciado)
-  - [ ] Indicador de tipo emocional
-  - [ ] Checkbox/gesto de completar → callback `onComplete` (sin lógica real aún)
-- [ ] Layout de pantalla Home: `PetWidget` centrado + tarjeta de "tu tarea activa" (mock, primera tarea del array)
+- [x] `PetWidget`
+  - [x] 3 estados de mood: feliz / neutral / triste (estático)
+  - [x] Prop de tamaño preparada (`full` / `compact`) aunque hoy solo se use `full`
+  - [x] Globo de texto motivacional encima (frases hardcodeadas)
+- [x] `TaskCard`
+  - [x] Estado normal / urgente / completada (visual diferenciado)
+  - [x] Indicador de tipo emocional
+  - [x] Checkbox/gesto de completar → callback `onComplete` (sin lógica real aún)
+- [x] Layout de pantalla Home: `PetWidget` centrado + tarjeta de "tu tarea activa" (mock, primera tarea del array)
 - [ ] Confirmar que la navegación hacia Diario y Tienda funciona desde aquí
 
 ---
 
 ## Fase 2 — El Diario (núcleo real de la app)
 
-- [ ] `StreakIndicator` (icono de fuego + número de días, mock)
-- [ ] `ProgressBar` — diseño "camino + gato"
-  - [ ] Ilustración/SVG del camino
-  - [ ] Posición del gato sobre el camino según % de tareas completadas (mock)
-  - [ ] Estado en cero tareas: gato al inicio, neutral — nunca triste ni de alarma
-- [ ] `DragList`
-  - [ ] Instalar `@dnd-kit/core` + `@dnd-kit/sortable`
-  - [ ] Integrar con mock data (5-6 tareas variadas)
-  - [ ] Verificar reorder visual fluido — este es el contexto de drag de **reordenar prioridad**
-- [ ] `NewTaskForm` (modo dual: crear / editar)
-  - [ ] Input de título (único campo libre)
-  - [ ] Botones predefinidos de urgencia: Para ya / Hoy / Margen
-  - [ ] Botones predefinidos de tipo emocional: Satisfactoria / Normal / Aburrida / Agotadora
-  - [ ] Toggle opcional: ¿añadir al calendario? (deadline)
-  - [ ] Input opcional: tiempo estimado
-  - [ ] Modo edición: mismo componente, valores precargados, botón pasa a "Guardar cambios"
-- [ ] `FloatingAddButton` → abre `NewTaskForm` en modo crear
-- [ ] Conectar `TaskCard` (tap/icono editar) → abre `NewTaskForm` en modo editar
-- [ ] `EmptyState` **(primera construcción)** — usarlo aquí si el array mock de tareas está vacío
-- [ ] `RewardToast` **(primera construcción)** — se dispara al completar el camino del `ProgressBar`
-  - [ ] Toast vía shadcn/Sonner
+- [x] `StreakIndicator` (icono de fuego + número de días, mock)
+- [x] `ProgressBar` — diseño "camino + gato"
+  - [x] Ilustración/SVG del camino
+  - [x] Posición del gato sobre el camino según % de tareas completadas (mock)
+  - [x] Estado en cero tareas: gato al inicio, neutral — nunca triste ni de alarma
+- [x] `DragList`
+  - [x] Instalar `@dnd-kit/core` + `@dnd-kit/sortable`
+  - [x] Integrar con mock data (5-6 tareas variadas)
+  - [x] Verificar reorder visual fluido — este es el contexto de drag de **reordenar prioridad**
+- [x] `NewTaskForm` (modo dual: crear / editar)
+  - [x] Input de título (único campo libre)
+  - [x] Botones predefinidos de urgencia: Para ya / Hoy / Margen
+  - [x] Botones predefinidos de tipo emocional: Satisfactoria / Normal / Aburrida / Agotadora
+  - [x] Toggle opcional: ¿añadir al calendario? (deadline)
+  - [x] Input opcional: tiempo estimado
+  - [x] Modo edición: mismo componente, valores precargados, botón pasa a "Guardar cambios"
+- [x] `FloatingAddButton` → abre `NewTaskForm` en modo crear
+- [x] Conectar `TaskCard` (tap/icono editar) → abre `NewTaskForm` en modo editar
+- [x] `EmptyState` **(primera construcción)** — usarlo aquí si el array mock de tareas está vacío
+- [x] `RewardToast` **(primera construcción)** — se dispara al completar el camino del `ProgressBar`
+  - [x] Toast vía shadcn/Sonner
   - [ ] Trigger `levelUp` en `PetWidget` sincronizado con el toast
 - [ ] Resaltado visual de la tarea recomendada (la primera del orden)
 

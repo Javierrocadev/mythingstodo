@@ -15,12 +15,12 @@ export function ProgressBar({ completed, total }: ProgressBarProps) {
           className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400 transition-all duration-700 ease-out"
           style={{ width: `${percentage}%` }}
         />
-        <div
-          className="absolute top-1/2 -translate-y-1/2 text-lg transition-all duration-700 ease-out"
-          style={{ left: `calc(${percentage}% - 12px)` }}
-        >
-          🐱
-        </div>
+        <img
+          src="/pets/Cat_Normal.svg"
+          alt=""
+          className="absolute top-1/2 h-7 w-auto -translate-y-1/2 transition-all duration-700 ease-out"
+          style={{ left: `calc(${percentage}%)` }}
+        />
       </div>
 
       <div className="flex items-center justify-between px-1">

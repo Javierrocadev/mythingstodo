@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const moods = {
-  HAPPY: { face: "😸", color: "bg-amber-100", label: "Feliz" },
-  NEUTRAL: { face: "😺", color: "bg-orange-50", label: "Neutral" },
-  SAD: { face: "😿", color: "bg-slate-100", label: "Triste" },
+  HAPPY: { src: "/pets/Cat_Happy.svg", color: "bg-amber-100", label: "Feliz" },
+  NEUTRAL: { src: "/pets/Cat_Normal.svg", color: "bg-orange-50", label: "Neutral" },
+  SAD: { src: "/pets/Cat_Sad.svg", color: "bg-slate-100", label: "Triste" },
 };
 
 const messages = [
@@ -31,15 +31,19 @@ export function PetWidget({
   size = "full",
   message,
 }: PetWidgetProps) {
-  const [bubbleText] = useState(() =>
-    message ?? messages[Math.floor(Math.random() * messages.length)],
-  );
+  const [bubbleText, setBubbleText] = useState(message ?? messages[0]);
   const currentMood = moods[mood];
+
+  useEffect(() => {
+    if (!message) {
+      setBubbleText(messages[Math.floor(Math.random() * messages.length)]);
+    }
+  }, [message]);
 
   if (size === "compact") {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-2xl">{currentMood.face}</span>
+        <img src={currentMood.src} alt={currentMood.label} className="h-8 w-auto" />
         <p className="text-muted-foreground text-xs italic">{bubbleText}</p>
       </div>
     );
@@ -53,11 +57,15 @@ export function PetWidget({
           <div className="absolute left-1/2 top-full -translate-x-1/2 border-8 border-transparent border-t-white" />
         </div>
 
-        <div
-          className={`flex h-32 w-32 items-center justify-center rounded-full ${currentMood.color} shadow-inner`}
-        >
-          <span className="text-6xl">{currentMood.face}</span>
-        </div>
+          <div
+            className={`flex h-40 w-48 items-center justify-center rounded-2xl ${currentMood.color} shadow-inner`}
+          >
+            <img
+              src={currentMood.src}
+              alt={currentMood.label}
+              className="h-36 w-full object-contain"
+            />
+          </div>
       </div>
 
       <span className="text-muted-foreground text-xs">{currentMood.label}</span>
