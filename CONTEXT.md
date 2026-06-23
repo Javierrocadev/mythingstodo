@@ -8,7 +8,7 @@
 
 ## 1. Qué es este producto (resumen para no perder el rumbo)
 
-MyThingsToDo (alias interno "CatFocus") es una app de gestión de tareas con **mascota virtual (gato)** y gamificación, dirigida a gente con sobrecarga mental, procrastinación o que abandona apps de productividad por ser demasiado complejas.
+MyThingsToDo es una app de gestión de tareas con **mascota virtual (gato)** y gamificación, dirigida a gente con sobrecarga mental, procrastinación o que abandona apps de productividad por ser demasiado complejas.
 
 Tres palabras que definen toda decisión de producto: **simple, rápida, sin culpa**.
 
@@ -16,6 +16,7 @@ Tres palabras que definen toda decisión de producto: **simple, rápida, sin cul
 - Cero fricción de escritura: el único campo de texto libre en una tarea es el título. Todo lo demás son botones predefinidos.
 - Nada de estética SaaS/corporativa (sin gráficos de pastel serios, sin paletas frías tipo Jira/Trello).
 - Sesiones de uso cortas y frecuentes (entrar, ver la tarea sugerida, salir) — no diseñes para sesiones largas.
+- **Aplicación web responsive**: funciona en desktop y móvil. Full-width, sin contenedores de ancho fijo tipo app nativa. La estética "cozy" se adapta a ambos tamaños.
 
 Si dudas si una feature "pega" con el producto, pregúntate: ¿esto añade culpa, fricción o ruido visual? Si sí, no.
 
@@ -57,36 +58,34 @@ Versión ligera de arquitectura hexagonal. **La única regla que no se negocia**
 ```
 src/
 ├── app/
+│   ├── page.tsx                  # Landing, pública
+│   ├── login/                    # Login, fuera del dashboard
+│   ├── onboarding/                # Wizard a pantalla completa
 │   └── (dashboard)/
-│       ├── home/        # Pantalla 1: El Refugio
-│       ├── tasks/        # Pantalla 2: El Diario
-│       └── shop/         # Pantalla 3: Tienda
+│       ├── home/                  # El Refugio
+│       ├── tasks/                  # El Diario
+│       ├── calendar/               # Vista propia
+│       ├── shop/                   # Tienda
+│       └── settings/               # Mínima, logout
 │
 ├── components/
-│   ├── ui/                # shadcn, sin lógica de negocio
-│   └── features/          # TaskCard, PetWidget, DragList, ProgressBar...
+│   ├── ui/                        # shadcn, sin lógica de negocio
+│   └── features/                  # TaskCard, PetWidget, DragList, ProgressBar...
 │
 ├── lib/
-│   ├── core/               # 🧠 DOMINIO — funciones puras, testeables sin mocks
+│   ├── core/                       # 🧠 DOMINIO — funciones puras
 │   │   ├── task/
 │   │   │   ├── task.types.ts
-│   │   │   └── task-score.ts      # heurística — fallback si la IA falla
+│   │   │   └── task-score.ts
 │   │   ├── pet/
 │   │   │   └── pet-mood.ts
 │   │   └── gamification/
-│   │       └── equip-rules.ts     # invariante 3+1
+│   │       └── equip-rules.ts
 │   │
-│   ├── actions/             # 🔌 Server Actions — orquestan core + db + ai
-│   │   ├── task.actions.ts
-│   │   ├── pet.actions.ts
-│   │   └── gamification.actions.ts
-│   │
-│   ├── ai/                  # servicios de IA (no determinista, no crítico)
-│   │   ├── order-tasks.ts
-│   │   └── pet-messages.ts
-│   │
-│   ├── db/                  # 🗄️ Prisma y repositorios
-│   └── auth/                # 🔐 NextAuth
+│   ├── actions/                    # 🔌 Server Actions
+│   ├── ai/                         # 🤖 Vercel AI SDK
+│   ├── db/                         # 🗄️ Prisma y repositorios
+│   └── auth/                       # 🔐 NextAuth
 │
 ├── hooks/
 └── types/

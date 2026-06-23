@@ -34,22 +34,29 @@
   ```
   src/
   ├── app/
+  │   ├── page.tsx                  # NUEVO — Landing, pública, fuera del grupo (dashboard)
+  │   ├── login/                    # NUEVO — fuera del grupo (dashboard), no usa AppShell
+  │   │   └── page.tsx
+  │   ├── onboarding/                # NUEVO — fuera del grupo (dashboard), wizard a pantalla completa
+  │   │   └── page.tsx
   │   └── (dashboard)/
-  │       ├── home/
-  │       ├── tasks/
-  │       └── shop/
+  │       ├── home/                  # Pantalla: El Refugio
+  │       ├── tasks/                  # Pantalla: El Diario
+  │       ├── calendar/               # NUEVO — vista propia, no widget dentro de tasks
+  │       ├── shop/                   # Pantalla: Tienda
+  │       └── settings/               # NUEVO — mínima, logout
+  │
   ├── components/
   │   ├── ui/
-  │   └── features/
+  │   └── features/                  # TaskCard, PetWidget, DragList, ProgressBar, CalendarView (nuevo), AppShell (nuevo)...
+  │
   ├── lib/
-  │   ├── core/
-  │   │   ├── task/
-  │   │   ├── pet/
-  │   │   └── gamification/
+  │   ├── core/                       # sin cambios de fondo, ver nota abajo
   │   ├── actions/
   │   ├── ai/
   │   ├── db/
   │   └── auth/
+  │
   ├── hooks/
   └── types/
   ```
@@ -100,8 +107,8 @@ Día 5 — Autenticación
 - [x] Configurar callbacks de sesión (incluir userId en la sesión)
 - [x] Proxy (proxy.ts) para proteger rutas de (dashboard) — Next.js 16 renombró middleware.ts a proxy.ts
 - [x] Pantalla de login simple (logo + botón "Continuar con Google", sin pulir diseño aún)
-- [ ] Probar login completo end-to-end en local
-- [ ] Probar login en el entorno de Vercel (variables de entorno de producción configuradas)
+- [x] Probar login completo end-to-end en local
+- [x] Probar login en el entorno de Vercel (variables de entorno de producción configuradas)
 
 SEMANA 2 — Pantallas estáticas + Componentes (con mock data)
 
@@ -109,57 +116,7 @@ Todo esta semana se construye con datos hardcodeados/mock. Cero Server Actions, 
 
 Día 1-2 — Componentes base reutilizables (components/features)
 
-- [ ] TaskCard
-  - [ ] Estado normal / urgente / completada (visual diferenciado)
-  - [ ] Indicador de tipo emocional (satisfactoria/normal/aburrida)
-  - [ ] Slide visual de estado si no hay subtareas
-  - [ ] Checkbox/gesto de completar (sin lógica real aún, solo callback onComplete)
-- [ ] ProgressBar (barra de progreso diario con %, con marcador de próxima recompensa)
-- [ ] StreakIndicator (icono de fuego/huella + número de días)
-- [ ] PetWidget
-  - [ ] 3 estados visuales: feliz / neutral / triste (estático, sin animación todavía)
-  - [ ] Globo de texto motivacional encima
-- [ ] FloatingAddButton (botón "+" fijo, abre Sheet/Dialog de nueva tarea)
-- [ ] NewTaskForm
-  - [ ] Input de título (único campo de texto libre)
-  - [ ] Botones predefinidos de urgencia: Para ya / Hoy / Margen
-  - [ ] Botones predefinidos de tipo emocional: Satisfactoria / Normal / Aburrida / Agotadora
-  - [ ] Toggle opcional: ¿añadir al calendario? (deadline)
-  - [ ] Input opcional: tiempo estimado
-- [ ] DragList
-  - [ ] Instalar @dnd-kit/core + @dnd-kit/sortable
-  - [ ] Integrar con mock data, verificar reorder visual fluido
-- [ ] CoinCounter (contador de monedas, esquina superior derecha)
-
-Día 3 — Pantalla 1: El Refugio (Home)
-
-- [ ] Layout general de la pantalla
-- [ ] PetWidget centrado con mood mock
-- [ ] Globo de texto motivacional (frases hardcodeadas por ahora, ej. "¡Una tarea más y hay premio!")
-- [ ] Tarjeta de "Tu tarea activa" (única tarea destacada — la primera del mock)
-- [ ] Navegación inferior/lateral hacia Diario y Tienda
-
-Día 4 — Pantalla 2: El Diario (Tareas)
-
-- [ ] ProgressBar diario en la parte superior
-- [ ] StreakIndicator junto a la barra
-- [ ] Listado de tareas con DragList (mock data, 5-6 tareas variadas)
-- [ ] Resaltado visual de la tarea recomendada (la primera del orden)
-- [ ] FloatingAddButton + NewTaskForm funcionando con mock (push local al array, sin persistir)
-- [ ] Calendario simple con deadlines de las tareas que lo tengan (componente calendar de shadcn)
-
-Día 5 — Pantalla 3: Tienda + Onboarding
-
-- [ ] Tabs/secciones por categoría: Mascotas / Animaciones / Decoración / Accesorios
-- [ ] Grid de items mock por categoría con precio
-- [ ] Lógica visual de "equipar" (estado local, sin persistir): resaltar el equipado, bloquear selección si ya hay 3 accesorios o 1 mascota activos
-- [ ] CoinCounter con botón "conseguir más" (placeholder, sin lógica de anuncios aún)
-- [ ] Wizard de onboarding (4 pasos):
-  - [ ] Paso 1: ¿Trabajo / Vida cotidiana / Ambos?
-  - [ ] Paso 2: ¿Cuánto tiempo quieres dedicar a ser productivo al día?
-  - [ ] Paso 3: ¿Qué tipo de notificaciones quieres?
-  - [ ] Paso 4: ¿Te interesa un modo "focus"?
-- [ ] Guardar respuestas en estado local (persistencia real en semana 3)
+Ver screens.md y orden-construction.md
 
 SEMANA 3 — Lógica real, Server Actions e IA
 
@@ -249,7 +206,7 @@ Día 4 — QA manual contra el brief original
 - [ ] ¿Hay algún mensaje o mecánica que genere culpa? (el gato nunca debe regañar)
 - [ ] ¿Hay campos obligatorios de más en el formulario de tarea? (debe seguir siendo <5s crear una)
 - [ ] ¿Hay sobreestimulación? (banners, tiendas demasiado recargadas, animaciones que no paran)
-- [ ] Revisión responsive completa (móvil primero, ya que el uso real es de sesiones cortas y frecuentes)
+- [ ] Revisión responsive completa (full-width web, adaptable a móvil y desktop)
 - [ ] Probar el flujo completo de un usuario nuevo de principio a fin (login → onboarding → crear tareas → ordenar con IA → completar → ver recompensa → tienda)
 
 Día 5 — Deploy final
