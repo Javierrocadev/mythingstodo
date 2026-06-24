@@ -60,22 +60,22 @@
 
 ## Fase 3 — Calendario (depende de la forma de datos de tareas ya definida en Fase 2)
 
-- [ ] `CalendarView` — vista propia, no widget compacto dentro de Diario
-  - [ ] Mostrar deadlines de las tareas mock en su día correspondiente
+- [x] `CalendarView` — vista propia, no widget compacto dentro de Diario
+  - [x] Mostrar deadlines de las tareas mock en su día correspondiente
   - [ ] Segundo contexto de drag (`@dnd-kit`): arrastrar una tarea de un día a otro cambia su deadline (mock, sin persistir)
-  - [ ] Confirmar que este drag NO comparte estado/lógica con el de `DragList` — son interacciones distintas aunque usen la misma librería
+  - [x] Confirmar que este drag NO comparte estado/lógica con el de `DragList` — son interacciones distintas aunque usen la misma librería
 
 ---
 
 ## Fase 4 — Tienda (independiente del resto; buen momento porque PetWidget y toasts ya existen)
 
-- [ ] Tabs/secciones por categoría: Mascotas / Animaciones / Decoración / Accesorios
-- [ ] Grid de items mock por categoría con precio
-- [ ] Lógica visual de "equipar" (estado local, sin persistir)
-  - [ ] Resaltar el ítem equipado
-  - [ ] Bloquear selección si ya hay 3 ítems en Accesorios+Decoración, o 1 en Mascotas, o 1 en Animaciones (invariante 3+1)
-  - [ ] Toast de aviso cuando se intenta violar el invariante
-- [ ] `PetWidget` — primera vez que se usa fuera de Home: validar aquí la variante `compact`
+- [x] Tabs/secciones por categoría: Mascotas / Animaciones / Decoración / Accesorios
+- [x] Grid de items mock por categoría con precio
+- [x] Lógica visual de "equipar" (estado local, sin persistir)
+  - [x] Resaltar el ítem equipado
+  - [x] Bloquear selección si ya hay 3 ítems en Accesorios+Decoración, o 1 en Mascotas, o 1 en Animaciones (invariante 3+1)
+  - [x] Toast de aviso cuando se intenta violar el invariante
+- [x] `PetWidget` — primera vez que se usa fuera de Home: validar aquí la variante `compact`
   - [ ] Trigger `equipChange`: el gato reacciona al equipar/quitar un objeto
 - [ ] `CoinCounter` con botón "conseguir más" (placeholder, sin lógica de anuncios)
 

@@ -87,7 +87,7 @@ async function main() {
       name: "Gato Naranja",
       category: "PET",
       price: 0,
-      imageUrl: "/pets/orange-cat.svg",
+      imageUrl: "/pets/orange-cat/happy.svg",
       isActive: true,
     },
   });

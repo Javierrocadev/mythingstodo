@@ -2,11 +2,8 @@
 
 import { useState, useEffect } from "react";
 
-const moods = {
-  HAPPY: { src: "/pets/Cat_Happy.svg", color: "bg-amber-100", label: "Feliz" },
-  NEUTRAL: { src: "/pets/Cat_Normal.svg", color: "bg-orange-50", label: "Neutral" },
-  SAD: { src: "/pets/Cat_Sad.svg", color: "bg-slate-100", label: "Triste" },
-};
+const moodLabels = { HAPPY: "Feliz", NEUTRAL: "Neutral", SAD: "Triste" } as const;
+const moodColors = { HAPPY: "bg-amber-100", NEUTRAL: "bg-orange-50", SAD: "bg-slate-100" } as const;
 
 const messages = [
   "¡Una tarea más y hay premio!",
@@ -17,22 +14,23 @@ const messages = [
   "Me encanta verte en acción",
 ];
 
-type Mood = keyof typeof moods;
+type Mood = keyof typeof moodLabels;
 type Size = "full" | "compact";
 
 interface PetWidgetProps {
   mood?: Mood;
   size?: Size;
   message?: string;
+  petType?: string;
 }
 
 export function PetWidget({
   mood = "HAPPY",
   size = "full",
   message,
+  petType = "orange-cat",
 }: PetWidgetProps) {
   const [bubbleText, setBubbleText] = useState(message ?? messages[0]);
-  const currentMood = moods[mood];
 
   useEffect(() => {
     if (!message) {
@@ -40,10 +38,12 @@ export function PetWidget({
     }
   }, [message]);
 
+  const imgSrc = `/pets/${petType}/${mood.toLowerCase()}.svg`;
+
   if (size === "compact") {
     return (
       <div className="flex items-center gap-2">
-        <img src={currentMood.src} alt={currentMood.label} className="h-8 w-auto" />
+        <img src={imgSrc} alt={moodLabels[mood]} className="h-8 w-auto" />
         <p className="text-muted-foreground text-xs italic">{bubbleText}</p>
       </div>
     );
@@ -57,18 +57,18 @@ export function PetWidget({
           <div className="absolute left-1/2 top-full -translate-x-1/2 border-8 border-transparent border-t-white" />
         </div>
 
-          <div
-            className={`flex h-40 w-48 items-center justify-center rounded-2xl ${currentMood.color} shadow-inner`}
-          >
-            <img
-              src={currentMood.src}
-              alt={currentMood.label}
-              className="h-36 w-full object-contain"
-            />
-          </div>
+        <div
+          className={`flex h-40 w-48 items-center justify-center rounded-2xl ${moodColors[mood]} shadow-inner`}
+        >
+          <img
+            src={imgSrc}
+            alt={moodLabels[mood]}
+            className="h-36 w-full object-contain"
+          />
+        </div>
       </div>
 
-      <span className="text-muted-foreground text-xs">{currentMood.label}</span>
+      <span className="text-muted-foreground text-xs">{moodLabels[mood]}</span>
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default async function LoginPage(props: {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8">
       <div className="flex flex-col items-center gap-2">
-        <img src="/pets/Cat_Happy.svg" alt="" className="h-20 w-auto" />
+        <img src="/pets/orange-cat/happy.svg" alt="" className="h-20 w-auto" />
         <h1 className="font-display text-3xl font-bold">MyThingsToDo</h1>
         <p className="text-muted-foreground text-sm">
           Organiza tus cosas, cuida a tu gato

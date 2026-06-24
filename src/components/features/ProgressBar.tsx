@@ -16,7 +16,7 @@ export function ProgressBar({ completed, total }: ProgressBarProps) {
           style={{ width: `${percentage}%` }}
         />
         <img
-          src="/pets/Cat_Normal.svg"
+          src="/pets/orange-cat/neutral.svg"
           alt=""
           className="absolute top-1/2 h-7 w-auto -translate-y-1/2 transition-all duration-700 ease-out"
           style={{ left: `calc(${percentage}%)` }}
