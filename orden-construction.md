@@ -62,7 +62,7 @@
 
 - [x] `CalendarView` — vista propia, no widget compacto dentro de Diario
   - [x] Mostrar deadlines de las tareas mock en su día correspondiente
-  - [ ] Segundo contexto de drag (`@dnd-kit`): arrastrar una tarea de un día a otro cambia su deadline (mock, sin persistir)
+  - [x] Segundo contexto de drag (`@dnd-kit`): arrastrar una tarea de un día a otro cambia su deadline (mock, sin persistir)
   - [x] Confirmar que este drag NO comparte estado/lógica con el de `DragList` — son interacciones distintas aunque usen la misma librería
 
 ---
@@ -83,20 +83,20 @@
 
 ## Fase 5 — Onboarding, Login, Landing, Settings (menor riesgo, no enseñan nada nuevo de construir antes)
 
-- [ ] **Landing**
-  - [ ] Hero/intro estático
-  - [ ] CTA hacia "usar la app" (no hacia login)
-- [ ] **Onboarding** (wizard 4 pasos)
-  - [ ] Paso 1: ¿Trabajo / Vida cotidiana / Ambos?
-  - [ ] Paso 2: ¿cuánto tiempo quieres dedicar a ser productivo al día?
-  - [ ] Paso 3: ¿avisos dentro de la web cuando pase algo bueno? (sí/no) — se guarda la respuesta para la futura app móvil, sin lógica de push
-  - [ ] Paso 4: ¿interés en modo "focus"?
-  - [ ] Guardar respuestas en estado local
-- [ ] **Login**
-  - [ ] Pantalla con botón "Continuar con Google" (sin NextAuth real todavía, sigue siendo mock)
-  - [ ] ⚠️ Decisión pendiente antes de cerrar esta fase: trigger exacto que solicita el login (¿tras completar X tareas? ¿al entrar a Tienda? ¿al cerrar pestaña/sesión?)
-- [ ] **Settings**
-  - [ ] Logout (mínimo indispensable)
+- [x] **Landing**
+  - [x] Hero/intro estático
+  - [x] CTA hacia "usar la app" (no hacia login)
+- [x] **Onboarding** (wizard 4 pasos)
+  - [x] Paso 1: ¿Trabajo / Vida cotidiana / Ambos?
+  - [x] Paso 2: ¿cuánto tiempo quieres dedicar a ser productivo al día?
+  - [x] Paso 3: ¿avisos dentro de la web cuando pase algo bueno? (sí/no) — se guarda la respuesta para la futura app móvil, sin lógica de push
+  - [x] Paso 4: ¿interés en modo "focus"?
+  - [x] Guardar respuestas en estado local
+- [x] **Login**
+  - [x] Pantalla con botón "Continuar con Google" (con NextAuth real)
+  - [ ] ⚠️ Decisión pendiente antes de cerrar esta fase: trigger exacto que solicita el login
+- [x] **Settings**
+  - [x] Logout (mínimo indispensable)
   - [ ] Resto del contenido, a definir más adelante, no bloquea
 
 ---
