@@ -1,130 +1,136 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import { toast } from "sonner";
 import { PetWidget } from "./PetWidget";
+import { equipItem, purchaseItem } from "@/lib/actions/gamification.actions";
+import { canEquip } from "@/lib/core/gamification/equip-rules";
 
-type Category = "PET" | "ANIMATION" | "DECORATION" | "ACCESSORY";
-
-interface ShopItem {
+interface ShopItemData {
   id: string;
   name: string;
-  category: Category;
+  category: "PET" | "ANIMATION" | "DECORATION" | "ACCESSORY";
   price: number;
   imageUrl: string;
   petType?: string;
 }
 
-const allItems: ShopItem[] = [
-  { id: "p1", name: "Gato Naranja", category: "PET", price: 0, imageUrl: "/pets/orange-cat/happy.svg", petType: "orange-cat" },
-  { id: "p2", name: "Gato Atigrado", category: "PET", price: 150, imageUrl: "/pets/tabby-cat/happy.svg", petType: "tabby-cat" },
-  { id: "p3", name: "Gato Negro", category: "PET", price: 200, imageUrl: "/pets/black-cat/happy.svg", petType: "black-cat" },
-  { id: "p4", name: "Gato Blanco", category: "PET", price: 250, imageUrl: "/pets/white-cat/happy.svg", petType: "white-cat" },
-  { id: "a1", name: "Sombrero de Chef", category: "ACCESSORY", price: 100, imageUrl: "/accessories/chef-hat.svg" },
-  { id: "a2", name: "Gafas de Sol", category: "ACCESSORY", price: 75, imageUrl: "/accessories/sunglasses.svg" },
-  { id: "a3", name: "Pajarita", category: "ACCESSORY", price: 120, imageUrl: "/accessories/bowtie.svg" },
-  { id: "d1", name: "Fondo de Bosque", category: "DECORATION", price: 200, imageUrl: "/decorations/forest-bg.svg" },
-  { id: "d2", name: "Fondo Estelar", category: "DECORATION", price: 250, imageUrl: "/decorations/stars-bg.svg" },
-  { id: "m1", name: "Estela Brillante", category: "ANIMATION", price: 300, imageUrl: "/animations/sparkle-trail.svg" },
-  { id: "m2", name: "Aura de Corazones", category: "ANIMATION", price: 350, imageUrl: "/animations/hearts-aura.svg" },
-];
+interface ShopViewProps {
+  items: ShopItemData[];
+  ownedIds: Set<string>;
+  equippedIds: Set<string>;
+  coins: number;
+  petMood: "HAPPY" | "NEUTRAL" | "SAD";
+  selectedPetType: string;
+}
 
-const categoryTabs: { key: Category; label: string }[] = [
+const categoryTabs: { key: ShopItemData["category"]; label: string }[] = [
   { key: "PET", label: "Mascotas" },
   { key: "ANIMATION", label: "Animaciones" },
   { key: "DECORATION", label: "Decoración" },
   { key: "ACCESSORY", label: "Accesorios" },
 ];
 
-export function ShopView() {
-  const [activeTab, setActiveTab] = useState<Category>("PET");
-  const [equipped, setEquipped] = useState<Set<string>>(new Set(["p1"]));
-  const [selectedPet, setSelectedPet] = useState("orange-cat");
+export function ShopView({
+  items,
+  ownedIds,
+  equippedIds: initialEquippedIds,
+  coins,
+  petMood,
+  selectedPetType: initialPetType,
+}: ShopViewProps) {
+  const [activeTab, setActiveTab] = useState<ShopItemData["category"]>("PET");
+  const [equippedIds, setEquippedIds] = useState(initialEquippedIds);
+  const [selectedPetType, setSelectedPetType] = useState(initialPetType);
+  const [, startTransition] = useTransition();
 
   const filteredItems = useMemo(
-    () => allItems.filter((item) => item.category === activeTab),
-    [activeTab],
+    () => items.filter((item) => item.category === activeTab),
+    [items, activeTab],
   );
 
-  const equipCounts = useMemo(() => {
-    let accessoriesAndDecor = 0;
-    let pets = 0;
-    let animations = 0;
-    for (const id of equipped) {
-      const item = allItems.find((i) => i.id === id);
-      if (!item) continue;
-      if (item.category === "ACCESSORY" || item.category === "DECORATION") accessoriesAndDecor++;
-      if (item.category === "PET") pets++;
-      if (item.category === "ANIMATION") animations++;
-    }
-    return { accessoriesAndDecor, pets, animations };
-  }, [equipped]);
+  const currentEquipped = useMemo(
+    () =>
+      items
+        .filter((item) => equippedIds.has(item.id))
+        .map((item) => ({ category: item.category })),
+    [items, equippedIds],
+  );
 
-  const canEquip = (item: ShopItem): boolean => {
-    if (equipped.has(item.id)) return true;
-    if (item.category === "PET") return equipCounts.pets < 1;
-    if (item.category === "ANIMATION") return equipCounts.animations < 1;
-    return equipCounts.accessoriesAndDecor < 3;
-  };
+  const handleToggle = (item: ShopItemData) => {
+    const isEquipped = equippedIds.has(item.id);
 
-  const handleToggle = (item: ShopItem) => {
-    if (equipped.has(item.id)) {
-      setEquipped((prev) => {
+    if (isEquipped) {
+      setEquippedIds((prev) => {
         const next = new Set(prev);
         next.delete(item.id);
         return next;
       });
       if (item.petType) {
-        const remainingPets = allItems.filter(
-          (i) => i.category === "PET" && equipped.has(i.id) && i.id !== item.id,
+        const remainingPet = items.find(
+          (i) => i.category === "PET" && equippedIds.has(i.id) && i.id !== item.id,
         );
-        if (remainingPets.length === 0) {
-          setSelectedPet("orange-cat");
+        if (!remainingPet) {
+          setSelectedPetType("orange-cat");
         } else {
-          const firstRemaining = remainingPets[0];
-          setSelectedPet(firstRemaining.petType ?? "orange-cat");
+          setSelectedPetType(remainingPet.petType ?? "orange-cat");
         }
       }
-      return;
-    }
-
-    if (!canEquip(item)) {
-      if (item.category === "PET") {
-        toast("Ya tienes una mascota equipada", {
-          description: "Desequipa la actual antes de elegir otra",
-        });
-      } else if (item.category === "ANIMATION") {
-        toast("Ya tienes una animación equipada", {
-          description: "Desequipa la actual antes de elegir otra",
-        });
-      } else {
-        toast("Límite de accesorios alcanzado", {
-          description: "Máximo 3 entre accesorios y decoración",
-        });
-      }
-      return;
-    }
-
-    // If equipping a pet, unequip the current one
-    if (item.category === "PET") {
-      setEquipped((prev) => {
-        const next = new Set(prev);
-        for (const id of next) {
-          const existing = allItems.find((i) => i.id === id);
-          if (existing?.category === "PET") next.delete(id);
+    } else if (!ownedIds.has(item.id)) {
+      startTransition(async () => {
+        try {
+          await purchaseItem(item.id);
+          toast(`¡${item.name} adquirido!`, { description: "Ahora puedes equiparlo" });
+        } catch (e) {
+          toast((e as Error).message, { description: "No tienes suficientes monedas" });
         }
-        next.add(item.id);
-        return next;
       });
-      setSelectedPet(item.petType ?? "orange-cat");
+      return;
     } else {
-      setEquipped((prev) => new Set(prev).add(item.id));
+      if (!canEquip(currentEquipped, item.category)) {
+        if (item.category === "PET") {
+          toast("Ya tienes una mascota equipada", {
+            description: "Desequipa la actual antes de elegir otra",
+          });
+        } else if (item.category === "ANIMATION") {
+          toast("Ya tienes una animación equipada", {
+            description: "Desequipa la actual antes de elegir otra",
+          });
+        } else {
+          toast("Límite de accesorios alcanzado", {
+            description: "Máximo 3 entre accesorios y decoración",
+          });
+        }
+        return;
+      }
+
+      if (item.category === "PET") {
+        setEquippedIds((prev) => {
+          const next = new Set(prev);
+          for (const id of next) {
+            const existing = items.find((i) => i.id === id);
+            if (existing?.category === "PET") next.delete(id);
+          }
+          next.add(item.id);
+          return next;
+        });
+        setSelectedPetType(item.petType ?? "orange-cat");
+      } else {
+        setEquippedIds((prev) => new Set(prev).add(item.id));
+      }
     }
+
+    startTransition(() => {
+      equipItem(item.id);
+    });
   };
 
   return (
     <div className="flex flex-col gap-6 py-4">
-      <PetWidget mood="HAPPY" size="compact" petType={selectedPet} />
+      <div className="flex items-center justify-between">
+        <PetWidget mood={petMood} size="compact" petType={selectedPetType} />
+        <span className="text-sm font-medium">🪙 {coins}</span>
+      </div>
 
       <div className="flex gap-2 overflow-x-auto">
         {categoryTabs.map((tab) => (
@@ -144,18 +150,19 @@ export function ShopView() {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {filteredItems.map((item) => {
-          const isEquipped = equipped.has(item.id);
-          const canEquipItem = canEquip(item);
+          const isOwned = ownedIds.has(item.id);
+          const isEquipped = equippedIds.has(item.id);
+          const canEquipItem = canEquip(currentEquipped, item.category);
 
           return (
             <button
               key={item.id}
               onClick={() => handleToggle(item)}
-              disabled={!isEquipped && !canEquipItem}
+              disabled={!isOwned && coins < item.price}
               className={`relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all ${
                 isEquipped
                   ? "border-primary bg-primary/5 shadow-sm"
-                  : canEquipItem
+                  : isOwned
                     ? "border-border bg-background hover:border-muted-foreground/30"
                     : "border-border/50 cursor-not-allowed opacity-50"
               }`}
@@ -163,6 +170,12 @@ export function ShopView() {
               {isEquipped && (
                 <span className="bg-primary text-primary-foreground absolute right-2 top-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold">
                   ✓
+                </span>
+              )}
+
+              {!isOwned && (
+                <span className="absolute left-2 top-2 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                  NUEVO
                 </span>
               )}
 
@@ -175,6 +188,11 @@ export function ShopView() {
               <span className="text-muted-foreground text-xs">
                 🪙 {item.price}
               </span>
+              {!isOwned && (
+                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-medium">
+                  Comprar
+                </span>
+              )}
             </button>
           );
         })}

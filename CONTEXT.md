@@ -147,6 +147,11 @@ Estas reglas viven en `lib/core/` y deben respetarse desde cualquier punto de en
 | Auth                | Solo Google OAuth vía NextAuth                                                                                                                                     | Suficiente para MVP, sin fricción de registro                                                                 |
 | Progreso/XP         | Un solo sistema de progreso, vive en `GamificationState` (coins, xp, level). `Pet` no tiene xp/level propio                                                        | Evitar dos sistemas de progresión paralelos que se puedan desincronizar                                       |
 | Sistema de burnout  | Se mantiene (`energy`/`burnout` en `User`), pero es **interno**: modula tono de mensajes del gato, nunca se muestra como barra/métrica visible en ninguna pantalla | Mostrarlo violaría la filosofía "sin culpa" — es el mismo riesgo que el "efecto mascota muerta" ya descartado |
+| Patrón de páginas (Server/Client) | Server Component para lectura de datos → Client Component con `useTransition` + Server Actions para mutaciones. Las páginas nunca llaman Server Actions desde `useEffect` para reads | Evita waterfall cliente→servidor, encaja con App Router, Server Actions son para mutaciones no para reads |
+| Rewards de `completeTask` | 10 coins base + XP variable por urgencia (NOW=30, TODAY=20, MARGIN=10) | Sistema simple para MVP, ajustable después |
+| Onboarding | `completeOnboarding` crea Pet + Streak + asigna skin gratis (price=0) vía InventoryItem con `isEquipped=true` | El skin gratis por defecto se maneja igual que cualquier item de tienda, evitando segunda fuente de verdad |
+| Lógica de equipamiento | `ShopView` usa `canEquip` de `lib/core/gamification/equip-rules.ts` como única fuente de verdad, no duplica lógica inline | Asegura que el invariante se cumple desde cualquier punto de entrada |
+| Orquestación `completeTask` | Flujo secuencial: marca DONE → suma coins/XP → actualiza dailyProgress → recalcula streak → recalcula mood del gato → crea RewardLog | Un solo punto de entrada que garantiza que todas las invariantes se actualizan juntas |
 
 ---
 

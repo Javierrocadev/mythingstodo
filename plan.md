@@ -122,33 +122,34 @@ SEMANA 3 — Lógica real, Server Actions e IA
 
 Día 1 — Dominio puro (lib/core)
 
-- [ ] core/task/task.types.ts — tipos compartidos (Urgency, EmotionalType, TaskStatus)
-- [ ] core/task/task-score.ts
-  - [ ] Función pura: scoreTask(task): number combinando urgencia + cercanía de deadline + tipo emocional
-  - [ ] Función sortTasksByScore(tasks): Task[] — este es el fallback si la IA falla o tarda
-  - [ ] Escribir 3-4 tests unitarios ya (es gratis, es función pura)
-- [ ] core/pet/pet-mood.ts
-  - [ ] Función pura: calculateMood(streak, dailyProgress): "happy" | "neutral" | "sad"
-  - [ ] Regla explícita: el gato nunca "muere" ni huye, solo varía de mood
-- [ ] core/gamification/equip-rules.ts
-  - [ ] Función pura: canEquip(currentEquipped, category): boolean (máx 3 accesorios+decoración, máx 1 mascota/animación)
-  - [ ] Tests del invariante (intentar equipar un 4º accesorio debe fallar)
+- [x] core/task/task.types.ts — tipos compartidos (Urgency, EmotionalType, TaskStatus)
+- [x] core/task/task-score.ts
+  - [x] Función pura: scoreTask(task): number combinando urgencia + cercanía de deadline + tipo emocional
+  - [x] Función sortTasksByScore(tasks): Task[] — este es el fallback si la IA falla o tarda
+  - [ ] Escribir 3-4 tests unitarios ya (se deja para semana 4)
+- [x] core/pet/pet-mood.ts
+  - [x] Función pura: calculateMood(streak, dailyProgress): "happy" | "neutral" | "sad"
+  - [x] Regla explícita: el gato nunca "muere" ni huye, solo varía de mood
+- [x] core/gamification/equip-rules.ts
+  - [x] Función pura: canEquip(currentEquipped, category): boolean (máx 3 accesorios+decoración, máx 1 mascota/animación)
+  - [ ] Tests del invariante (se deja para semana 4)
 
 Día 2 — Server Actions + conexión real a BD
 
-- [ ] lib/db/prisma.ts (cliente singleton)
-- [ ] lib/db/task.repository.ts (funciones CRUD simples sobre Task)
-- [ ] lib/db/pet.repository.ts (incluye resolver el skin/mascota activa consultando InventoryItem+ShopItem con isEquipped=true, no leyendo un campo de Pet)
-- [ ] lib/db/gamification.repository.ts
-- [ ] lib/actions/task.actions.ts
-  - [ ] createTask(data)
-  - [ ] completeTask(id) → orquesta: marca tarea, actualiza dailyProgress, recalcula streak, recalcula mood del gato
-  - [ ] reorderTasks(orderedIds) → persiste el campo order
-- [ ] lib/actions/pet.actions.ts
-- [ ] lib/actions/gamification.actions.ts (equipItem, addCoins) — equipItem con category=PET simplemente activa/desactiva isEquipped en InventoryItem, no toca Pet
-- [ ] Sustituir mock data por datos reales en Home, Diario y Tienda (Server Components + await directo a los repositorios)
-- [ ] Persistir las respuestas del onboarding directamente en los campos ya existentes de User (onboardingWorkType, onboardingDailyTime, onboardingFocusMode, notificationsEnabled, onboardingCompleted) — no se necesita una tabla UserPreferences nueva, ya están en el schema
-- [ ] revalidatePath/revalidateTag donde corresponda tras cada acción
+- [x] lib/db/prisma.ts (cliente singleton) — ya existía
+- [x] lib/db/task.repository.ts (funciones CRUD simples sobre Task)
+- [x] lib/db/pet.repository.ts (incluye resolver el skin/mascota activa consultando InventoryItem+ShopItem con isEquipped=true, no leyendo un campo de Pet)
+- [x] lib/db/gamification.repository.ts
+- [x] lib/actions/task.actions.ts
+  - [x] createTask(data)
+  - [x] completeTask(id) → orquesta: marca tarea, actualiza dailyProgress, recalcula streak, recalcula mood del gato
+  - [x] reorderTasks(orderedIds) → persiste el campo order
+- [x] lib/actions/pet.actions.ts (recalculateMood)
+- [x] lib/actions/gamification.actions.ts (equipItem, purchaseItem) — equipItem con category=PET desequipa el PET previo y activa el nuevo
+- [x] lib/actions/onboarding.actions.ts — completa onboarding, crea Pet+Streak+defaultSkin
+- [x] Sustituir mock data por datos reales en Home, Diario y Tienda (Server Components + await directo a los repositorios)
+- [x] Persistir las respuestas del onboarding directamente en los campos ya existentes de User
+- [x] revalidatePath/revalidateTag donde corresponda tras cada acción
 
 Día 3 — Micro-interacciones reales
 
@@ -225,3 +226,16 @@ Notas y decisiones pendientes a lo largo del proyecto
 - [ ] ¿Notificaciones push en esta versión web?: ⬜ No (confirmado — se deja para móvil)
 - [ ] ¿Sistema de anuncios para monedas extra en el MVP?: ⬜ Sí ⬜ Placeholder sin lógica real
 - [ ] Sistema de burnout (energy/burnout en User): confirmado que se mantiene, pero es interno — no se muestra como métrica/barra visible al usuario en ninguna pantalla del MVP (ver CONTEXT.md)
+
+### Por hacer antes de continuar (guest/anonymous mode)
+
+- [ ] Resolver cómo se guardan las tareas creadas en modo invitado (almacenamiento local / sesión anónima) y cómo se "adoptan" a la cuenta real al hacer login — detalle completo en `screens.md`, sección 7
+- [ ] Decidir si el MVP incluirá modo invitado o solo login con Google (actualmente proxy.ts es un no-op, no protege rutas)
+
+### Decisiones registradas en CONTEXT.md (Semana 3 Día 2)
+
+- [x] Patrón Server Component (reads) → Client Component + useTransition + Server Actions (writes)
+- [x] Rewards de completeTask: 10 coins + XP por urgencia
+- [x] Onboarding: Server Action crea Pet + Streak + defaultSkin en una transacción
+- [x] ShopView usa canEquip de lib/core, no duplica lógica
+- [x] Orquestación completa de completeTask documentada

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { completeOnboarding } from "@/lib/actions/onboarding.actions";
 
 const steps = [
   {
@@ -47,18 +48,39 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [, startTransition] = useTransition();
 
   const step = steps[currentStep];
   const isLast = currentStep === steps.length - 1;
+  const allAnswered = steps.every((s) => answers[s.key]);
 
   const handleSelect = (value: string) => {
-    setAnswers((prev) => ({ ...prev, [step.key]: value }));
+    const newAnswers = { ...answers, [step.key]: value };
+    setAnswers(newAnswers);
+
     if (isLast) {
-      localStorage.setItem("onboarding", JSON.stringify(answers));
-      router.push("/home");
+      startTransition(() => {
+        completeOnboarding(newAnswers as {
+          workType: string;
+          dailyTime: string;
+          notifications: string;
+          focusMode: string;
+        });
+      });
     } else {
       setCurrentStep((prev) => prev + 1);
     }
+  };
+
+  const handleSkip = () => {
+    startTransition(() => {
+      completeOnboarding({
+        workType: "both",
+        dailyTime: "15",
+        notifications: "yes",
+        focusMode: "no",
+      });
+    });
   };
 
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -102,7 +124,7 @@ export default function OnboardingPage() {
         </div>
 
         <button
-          onClick={() => router.push("/home")}
+          onClick={handleSkip}
           className="text-muted-foreground mx-auto text-xs underline underline-offset-2 hover:text-foreground"
         >
           Saltar onboarding
