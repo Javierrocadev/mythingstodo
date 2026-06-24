@@ -10,17 +10,9 @@ import { PetWidget } from "@/components/features/PetWidget";
 import { StreakIndicator } from "@/components/features/StreakIndicator";
 import { ProgressBar } from "@/components/features/ProgressBar";
 import { triggerRewardToast } from "@/components/features/RewardToast";
-import { createTask, completeTask, reorderTasks } from "@/lib/actions/task.actions";
-
-interface TaskData {
-  id: string;
-  title: string;
-  urgency: "NOW" | "TODAY" | "MARGIN";
-  emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
-  status: "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED";
-  estimatedMinutes?: number | null;
-  deadline?: string | null;
-}
+import { useOptimisticTasks, type TaskData } from "@/hooks/useOptimisticTask";
+import { useDragOrder } from "@/hooks/useDragOrder";
+import { createTask, completeTask } from "@/lib/actions/task.actions";
 
 interface TasksClientProps {
   initialTasks: TaskData[];
@@ -37,10 +29,11 @@ export function TasksClient({
   petMood,
   petType,
 }: TasksClientProps) {
-  const [tasks, setTasks] = useState(initialTasks);
+  const { tasks, toggleTask, addTask, replaceTask, reorderVisible } = useOptimisticTasks(initialTasks);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const { isDirty, setIsDirty, saveOrder } = useDragOrder();
 
   const todoTasks = tasks.filter((t) => t.status !== "DONE");
   const doneTasks = tasks.filter((t) => t.status === "DONE");
@@ -48,29 +41,24 @@ export function TasksClient({
   const completedCount = doneTasks.length;
 
   const handleComplete = useCallback((id: string) => {
-    setTasks((prev) => {
-      const isDone = prev.find((t) => t.id === id)?.status === "DONE";
-      const newStatus = isDone ? "TODO" as const : "DONE" as const;
-      const next: TaskData[] = prev.map((t) =>
-        t.id === id ? { ...t, status: newStatus } : t,
-      );
-      const newDone = next.filter((t) => t.status === "DONE").length;
-      if (!isDone && newDone === next.length) {
-        triggerRewardToast({ type: "daily" });
-      }
-      return next;
-    });
+    const task = initialTasks.find((t) => t.id === id);
+    const wasDone = task?.status === "DONE";
+    const doneBefore = initialTasks.filter((t) => t.status === "DONE").length;
+
+    if (!wasDone && doneBefore + 1 === initialTasks.length) {
+      triggerRewardToast({ type: "daily" });
+    }
+
+    toggleTask(id);
     startTransition(() => {
       completeTask(id);
     });
-  }, []);
+  }, [initialTasks, toggleTask]);
 
   const handleReorder = useCallback((reordered: TaskData[]) => {
-    setTasks((prev) => {
-      const done = prev.filter((t) => t.status === "DONE");
-      return [...reordered, ...done];
-    });
-  }, []);
+    reorderVisible(reordered);
+    setIsDirty(true);
+  }, [reorderVisible, setIsDirty]);
 
   const handleEdit = useCallback((id: string) => {
     setEditingId(id);
@@ -85,27 +73,26 @@ export function TasksClient({
     estimatedMinutes?: number;
   }) => {
     if (editingId) {
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === editingId
-            ? { ...t, title: data.title, urgency: data.urgency, emotionalType: data.emotionalType, estimatedMinutes: data.estimatedMinutes ?? null, deadline: data.deadline ?? null }
-            : t,
-        ),
-      );
+      replaceTask({
+        id: editingId,
+        title: data.title,
+        urgency: data.urgency,
+        emotionalType: data.emotionalType,
+        estimatedMinutes: data.estimatedMinutes ?? null,
+        deadline: data.deadline ?? null,
+        status: "TODO",
+      });
     } else {
-      const newId = `temp-${Date.now()}`;
-      setTasks((prev) => [
-        ...prev,
-        {
-          id: newId,
-          title: data.title,
-          urgency: data.urgency,
-          emotionalType: data.emotionalType,
-          estimatedMinutes: data.estimatedMinutes ?? null,
-          deadline: data.deadline ?? null,
-          status: "TODO" as const,
-        },
-      ]);
+      const tempId = `temp-${Date.now()}`;
+      addTask({
+        id: tempId,
+        title: data.title,
+        urgency: data.urgency,
+        emotionalType: data.emotionalType,
+        estimatedMinutes: data.estimatedMinutes ?? null,
+        deadline: data.deadline ?? null,
+        status: "TODO",
+      });
       startTransition(() => {
         createTask({
           title: data.title,
@@ -118,14 +105,11 @@ export function TasksClient({
     }
     setShowForm(false);
     setEditingId(null);
-  }, [editingId]);
+  }, [editingId, addTask, replaceTask]);
 
   const handleSaveOrder = useCallback(() => {
-    const orderedIds = todoTasks.map((t) => t.id);
-    startTransition(() => {
-      reorderTasks(orderedIds);
-    });
-  }, [todoTasks]);
+    saveOrder(todoTasks.map((t) => t.id));
+  }, [todoTasks, saveOrder]);
 
   const currentMood =
     completedCount >= totalCount
@@ -181,7 +165,7 @@ export function TasksClient({
               onClick={handleSaveOrder}
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-2 text-sm font-medium transition-colors"
             >
-              Guardar orden
+              {isDirty ? "Guardar orden *" : "Guardar orden"}
             </button>
           </div>
         </>

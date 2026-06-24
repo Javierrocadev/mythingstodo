@@ -153,21 +153,23 @@ Día 2 — Server Actions + conexión real a BD
 
 Día 3 — Micro-interacciones reales
 
-- [ ] hooks/useOptimisticTask.ts con useOptimistic para completar tarea al instante (UI cambia antes de que el servidor confirme)
-- [ ] Conectar confeti/animación de celebración al evento optimista (placeholder de animación, se pule en semana 4)
-- [ ] hooks/useDragOrder.ts — estado local del reorder + botón "Guardar orden" que llama a reorderTasks
-- [ ] Verificar que si el servidor falla, el optimistic update revierte correctamente (probar desconectando red a propósito)
+- [x] hooks/useOptimisticTask.ts con useOptimistic para completar tarea al instante (UI cambia antes de que el servidor confirme)
+- [x] Conectar confeti/animación de celebración al evento optimista (placeholder de animación, se pule en semana 4)
+- [x] hooks/useDragOrder.ts — estado local del reorder + botón "Guardar orden" que llama a reorderTasks
+- [ ] Verificar que si el servidor falla, el optimistic update revierte correctamente (se deja para QA manual en Semana 4)
 
 Día 4 — Decisión e integración de IA (parte 1)
 
-- [ ] Terminar las pruebas de prompt en playground (Gemini AI Studio / HuggingFace) si no se hizo antes
-- [ ] Decidir proveedor final
-- [ ] Configurar API key en .env.local y en Vercel
-- [ ] lib/ai/order-tasks.ts
-  - [ ] Definir schema Zod: z.object({ order: z.array(z.string()) })
-  - [ ] Implementar generateObject con el prompt definitivo
-  - [ ] Manejo de error/timeout → fallback automático a sortTasksByScore
-  - [ ] Test manual: ¿el orden tiene sentido con casos reales?
+- [x] Terminar las pruebas de prompt en playground (Gemini AI Studio / HuggingFace) si no se hizo antes — se omite, usuario decidió Gemini
+- [x] Decidir proveedor final: Gemini con gemini-3.5-flash
+- [x] Configurar API key en .env.local y en Vercel — usuario confirma que tiene GOOGLE_GENERATIVE_AI_API_KEY
+- [x] lib/ai/order-tasks.ts
+  - [x] Schema Zod: igual que AI Studio — `{ tasks: [{ id, emotionalType (enum), estimatedMinutes (int) }] }` (no solo IDs, la IA reclasifica emotionalType y estima minutos)
+  - [x] System instruction separada del prompt (rol + reglas)
+  - [x] Implementar generateObject con el prompt definitivo
+  - [x] Manejo de error/timeout → fallback automático a fallbackSort (usa scoreTask internamente)
+  - [x] Merge de valores de IA (emotionalType, estimatedMinutes) sobre los datos originales
+  - [ ] Test manual pendiente (se prueba al conectar UI en Día 5)
 
 Día 5 — Integración de IA (parte 2) + conexión al flujo
 

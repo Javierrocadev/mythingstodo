@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { PetWidget } from "@/components/features/PetWidget";
 import { TaskCard } from "@/components/features/TaskCard";
+import { useOptimisticTasks } from "@/hooks/useOptimisticTask";
 import { completeTask } from "@/lib/actions/task.actions";
 
 interface TaskData {
@@ -21,18 +22,14 @@ interface HomeClientProps {
 }
 
 export function HomeClient({ tasks: initialTasks, petMood, petType }: HomeClientProps) {
-  const [tasks, setTasks] = useState(initialTasks);
+  const { tasks, toggleTask } = useOptimisticTasks(initialTasks);
   const [, startTransition] = useTransition();
 
   const activeTask = tasks.find((t) => t.status !== "DONE") ?? null;
   const completedCount = tasks.filter((t) => t.status === "DONE").length;
 
   const handleComplete = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, status: t.status === "DONE" ? "TODO" : "DONE" } : t,
-      ),
-    );
+    toggleTask(id);
     startTransition(() => {
       completeTask(id);
     });
