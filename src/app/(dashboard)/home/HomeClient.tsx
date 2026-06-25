@@ -29,8 +29,8 @@ export function HomeClient({ tasks: initialTasks, petMood, petType }: HomeClient
   const completedCount = tasks.filter((t) => t.status === "DONE").length;
 
   const handleComplete = (id: string) => {
-    toggleTask(id);
     startTransition(() => {
+      toggleTask(id);
       completeTask(id);
     });
   };

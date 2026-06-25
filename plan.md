@@ -173,11 +173,11 @@ Día 4 — Decisión e integración de IA (parte 1)
 
 Día 5 — Integración de IA (parte 2) + conexión al flujo
 
-- [ ] Conectar order-tasks.ts al flujo real: tras añadir 3-4 tareas → botón "Ordenar" → llamada a la IA → render del orden sugerido
-- [ ] El usuario puede mover con DragList el orden sugerido o dejarlo
-- [ ] Al pulsar "Guardar", persistir tareas + orden final (sea de la IA o modificado)
-- [ ] lib/ai/pet-messages.ts — frases motivacionales generadas (no crítico, puede variar)
-- [ ] Conectar frases del gato al globo de texto en Home (reemplazar el texto hardcodeado)
+- [x] Conectar order-tasks.ts al flujo real: tras añadir 3-4 tareas → botón "Ordenar" → llamada a la IA → render del orden sugerido
+- [x] El usuario puede mover con DragList el orden sugerido o dejarlo
+- [x] Al pulsar "Guardar", persistir tareas + orden final (sea de la IA o modificado)
+- [x] lib/ai/pet-messages.ts — frases motivacionales organizadas por mood (HAPPY/NEUTRAL/SAD), sin culpa
+- [x] Conectar frases del gato al globo de texto en todos los PetWidget (reemplazar el array hardcodeado)
 
 SEMANA 4 — Animaciones, Testing, Pulido y Deploy
 

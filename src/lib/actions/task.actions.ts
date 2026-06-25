@@ -6,6 +6,7 @@ import { taskRepository } from "@/lib/db/task.repository";
 import { gamificationRepository } from "@/lib/db/gamification.repository";
 import { petRepository } from "@/lib/db/pet.repository";
 import { calculateMood } from "@/lib/core/pet/pet-mood";
+import { orderTasks } from "@/lib/ai/order-tasks";
 import type { PetMood } from "@prisma/client";
 
 function moodToPrisma(mood: string): PetMood {
@@ -31,6 +32,31 @@ export async function createTask(data: {
     estimatedMinutes: data.estimatedMinutes ?? null,
     deadline: data.deadline ?? null,
     order,
+  });
+
+  revalidatePath("/tasks");
+  revalidatePath("/home");
+}
+
+export async function updateTask(id: string, data: {
+  title: string;
+  urgency: "NOW" | "TODAY" | "MARGIN";
+  emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
+  estimatedMinutes?: number | null;
+  deadline?: Date | null;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("No autenticado");
+
+  const task = await taskRepository.findById(id);
+  if (!task || task.userId !== session.user.id) throw new Error("Tarea no encontrada");
+
+  await taskRepository.update(id, {
+    title: data.title,
+    urgency: data.urgency,
+    emotionalType: data.emotionalType,
+    estimatedMinutes: data.estimatedMinutes ?? null,
+    deadline: data.deadline ?? null,
   });
 
   revalidatePath("/tasks");
@@ -104,4 +130,51 @@ export async function reorderTasks(orderedIds: string[]) {
   await taskRepository.reorder(orderedIds);
 
   revalidatePath("/tasks");
+}
+
+export async function reorderAndEnrich(
+  orderedIds: string[],
+  enriched: Array<{
+    id: string;
+    emotionalType?: string;
+    estimatedMinutes?: number | null;
+  }>,
+) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("No autenticado");
+
+  await taskRepository.reorder(orderedIds);
+  await taskRepository.batchEnrich(enriched);
+
+  revalidatePath("/tasks");
+}
+
+export async function aiSuggestOrder() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("No autenticado");
+
+  const tasks = await taskRepository.findActiveByUser(session.user.id);
+
+  const result = await orderTasks(
+    tasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      urgency: t.urgency as "NOW" | "TODAY" | "MARGIN",
+      emotionalType: t.emotionalType as "SATISFYING" | "NORMAL" | "BORING" | "DRAINING",
+      deadline: t.deadline,
+      estimatedMinutes: t.estimatedMinutes,
+      status: t.status as "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED",
+    })),
+    new Date(),
+  );
+
+  return result.map((t) => ({
+    id: t.id,
+    title: t.title,
+    urgency: t.urgency,
+    emotionalType: t.emotionalType,
+    estimatedMinutes: t.estimatedMinutes,
+    deadline: t.deadline?.toISOString() ?? null,
+    status: t.status,
+  }));
 }

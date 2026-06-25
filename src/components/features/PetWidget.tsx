@@ -1,18 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getPetMessage } from "@/lib/ai/pet-messages";
 
 const moodLabels = { HAPPY: "Feliz", NEUTRAL: "Neutral", SAD: "Triste" } as const;
 const moodColors = { HAPPY: "bg-amber-100", NEUTRAL: "bg-orange-50", SAD: "bg-slate-100" } as const;
 
-const messages = [
-  "¡Una tarea más y hay premio!",
-  "Estoy aquí para ayudarte 🐾",
-  "Cada pequeña tarea cuenta",
-  "Tú puedes con todo",
-  "Vamos paso a paso",
-  "Me encanta verte en acción",
-];
+const defaultMessages = {
+  HAPPY: "¡Una tarea más y hay premio!",
+  NEUTRAL: "Estoy aquí para ayudarte 🐾",
+  SAD: "Siempre puedes empezar de nuevo",
+} as const;
 
 type Mood = keyof typeof moodLabels;
 type Size = "full" | "compact";
@@ -30,13 +28,11 @@ export function PetWidget({
   message,
   petType = "orange-cat",
 }: PetWidgetProps) {
-  const [bubbleText, setBubbleText] = useState(message ?? messages[0]);
+  const [bubbleText, setBubbleText] = useState(message ?? defaultMessages[mood]);
 
   useEffect(() => {
-    if (!message) {
-      setBubbleText(messages[Math.floor(Math.random() * messages.length)]);
-    }
-  }, [message]);
+    setBubbleText(message ?? getPetMessage(mood));
+  }, [message, mood]);
 
   const imgSrc = `/pets/${petType}/${mood.toLowerCase()}.svg`;
 

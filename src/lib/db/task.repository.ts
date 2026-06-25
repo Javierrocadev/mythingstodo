@@ -67,4 +67,21 @@ export const taskRepository = {
     );
     await prisma.$transaction(updates);
   },
+
+  async batchEnrich(
+    updates: Array<{ id: string; emotionalType?: string; estimatedMinutes?: number | null }>,
+  ) {
+    const ops = updates
+      .filter((u) => u.emotionalType !== undefined || u.estimatedMinutes !== undefined)
+      .map((u) =>
+        prisma.task.update({
+          where: { id: u.id },
+          data: {
+            ...(u.emotionalType ? { emotionalType: u.emotionalType as any } : {}),
+            ...(u.estimatedMinutes !== undefined ? { estimatedMinutes: u.estimatedMinutes } : {}),
+          },
+        }),
+      );
+    if (ops.length > 0) await prisma.$transaction(ops);
+  },
 };
