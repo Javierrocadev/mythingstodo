@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useTransition } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -15,6 +15,7 @@ import {
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { TaskCard } from "./TaskCard";
+import { completeTask, updateTask } from "@/lib/actions/task.actions";
 
 interface CalendarTask {
   id: string;
@@ -26,74 +27,9 @@ interface CalendarTask {
   estimatedMinutes?: number | null;
 }
 
-const mockTasks: CalendarTask[] = [
-  {
-    id: "c1",
-    title: "Preparar presentación del jueves",
-    urgency: "NOW",
-    emotionalType: "BORING",
-    status: "TODO",
-    deadline: new Date(2026, 5, 25),
-    estimatedMinutes: 60,
-  },
-  {
-    id: "c2",
-    title: "Comprar comida del gato",
-    urgency: "TODAY",
-    emotionalType: "SATISFYING",
-    status: "TODO",
-    deadline: new Date(2026, 5, 24),
-    estimatedMinutes: 15,
-  },
-  {
-    id: "c3",
-    title: "Leer capítulo 3 del libro",
-    urgency: "MARGIN",
-    emotionalType: "SATISFYING",
-    status: "TODO",
-    deadline: new Date(2026, 6, 1),
-    estimatedMinutes: 30,
-  },
-  {
-    id: "c4",
-    title: "Llamar al seguro",
-    urgency: "TODAY",
-    emotionalType: "DRAINING",
-    status: "TODO",
-    deadline: new Date(2026, 5, 24),
-    estimatedMinutes: 20,
-  },
-  {
-    id: "c5",
-    title: "Cumpleaños de Ana",
-    urgency: "MARGIN",
-    emotionalType: "SATISFYING",
-    status: "TODO",
-    deadline: new Date(2026, 5, 28),
-  },
-  {
-    id: "c6",
-    title: "Organizar escritorio",
-    urgency: "MARGIN",
-    emotionalType: "SATISFYING",
-    status: "TODO",
-  },
-  {
-    id: "c7",
-    title: "Hacer copia de seguridad",
-    urgency: "TODAY",
-    emotionalType: "BORING",
-    status: "TODO",
-  },
-  {
-    id: "c8",
-    title: "Ver curso de Tailwind",
-    urgency: "MARGIN",
-    emotionalType: "SATISFYING",
-    status: "TODO",
-    estimatedMinutes: 45,
-  },
-];
+interface CalendarViewProps {
+  initialTasks: CalendarTask[];
+}
 
 function DraggableTaskCard({ task, isDragging }: { task: CalendarTask; isDragging?: boolean }) {
   const { attributes, listeners, setNodeRef } =
@@ -128,10 +64,11 @@ function DroppableDayButton(props: React.ComponentProps<typeof CalendarDayButton
   );
 }
 
-export function CalendarView() {
+export function CalendarView({ initialTasks }: CalendarViewProps) {
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
-  const [tasks, setTasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState(initialTasks);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
   const activeTask = useMemo(
     () => tasks.find((t) => t.id === activeId) ?? null,
@@ -164,11 +101,11 @@ export function CalendarView() {
     ? taskMap.get(format(selectedDay, "yyyy-MM-dd")) ?? []
     : [];
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-  };
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     setActiveId(null);
     const { active, over } = event;
     if (!over) return;
@@ -177,10 +114,22 @@ export function CalendarView() {
     const dropData = over.data.current as { type: string; date?: Date } | undefined;
     if (!dropData || dropData.type !== "day" || !dropData.date) return;
 
+    const newDeadline = dropData.date;
+
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, deadline: dropData.date } : t)),
+      prev.map((t) => (t.id === taskId ? { ...t, deadline: newDeadline } : t)),
     );
-  };
+
+    startTransition(() => {
+      updateTask(taskId, { deadline: newDeadline });
+    });
+  }, []);
+
+  const handleComplete = useCallback((id: string) => {
+    startTransition(() => {
+      completeTask(id);
+    });
+  }, []);
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>

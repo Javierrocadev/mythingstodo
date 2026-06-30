@@ -39,9 +39,9 @@ export async function createTask(data: {
 }
 
 export async function updateTask(id: string, data: {
-  title: string;
-  urgency: "NOW" | "TODAY" | "MARGIN";
-  emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
+  title?: string;
+  urgency?: "NOW" | "TODAY" | "MARGIN";
+  emotionalType?: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
   estimatedMinutes?: number | null;
   deadline?: Date | null;
 }) {
@@ -52,11 +52,11 @@ export async function updateTask(id: string, data: {
   if (!task || task.userId !== session.user.id) throw new Error("Tarea no encontrada");
 
   await taskRepository.update(id, {
-    title: data.title,
-    urgency: data.urgency,
-    emotionalType: data.emotionalType,
-    estimatedMinutes: data.estimatedMinutes ?? null,
-    deadline: data.deadline ?? null,
+    ...(data.title !== undefined ? { title: data.title } : {}),
+    ...(data.urgency !== undefined ? { urgency: data.urgency } : {}),
+    ...(data.emotionalType !== undefined ? { emotionalType: data.emotionalType } : {}),
+    ...(data.estimatedMinutes !== undefined ? { estimatedMinutes: data.estimatedMinutes } : {}),
+    ...(data.deadline !== undefined ? { deadline: data.deadline } : {}),
   });
 
   revalidatePath("/tasks");
