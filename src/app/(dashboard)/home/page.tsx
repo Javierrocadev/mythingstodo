@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth/auth.config";
+import { prisma } from "@/lib/db/prisma";
 import { taskRepository } from "@/lib/db/task.repository";
 import { petRepository } from "@/lib/db/pet.repository";
 import { HomeClient } from "./HomeClient";
@@ -13,6 +14,17 @@ export default async function HomePage() {
     petRepository.findActiveSkin(session.user.id),
   ]);
 
+  const equippedInventory = await prisma.inventoryItem.findMany({
+    where: { userId: session.user.id, isEquipped: true },
+    include: { shopItem: true },
+  });
+
+  const equippedAccessories = equippedInventory.filter((inv) => inv.shopItem.category === "ACCESSORY");
+  const equippedDecoration = equippedInventory.find(
+    (inv) => inv.shopItem.category === "DECORATION" && inv.shopItem.imageUrl,
+  );
+  const equippedAnimation = equippedInventory.find((inv) => inv.shopItem.category === "ANIMATION");
+
   return (
     <HomeClient
       tasks={tasks.map((t) => ({
@@ -25,6 +37,9 @@ export default async function HomePage() {
       }))}
       petMood={(pet?.currentMood ?? "NEUTRAL") as "HAPPY" | "NEUTRAL" | "SAD"}
       petType={activeSkin?.shopItem.imageUrl?.split("/")[2] ?? "orange-cat"}
+      accessories={equippedAccessories.map((inv) => inv.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "").filter(Boolean)}
+      decoration={equippedDecoration?.shopItem.imageUrl ?? null}
+      effect={equippedAnimation?.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "confetti"}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth/auth.config";
+import { gamificationRepository } from "@/lib/db/gamification.repository";
 import { AppShell } from "@/components/features/AppShell";
 
 export default async function DashboardLayout({
@@ -11,5 +12,13 @@ export default async function DashboardLayout({
     ? { name: session.user.name ?? null, image: session.user.image ?? null }
     : null;
 
-  return <AppShell user={user}>{children}</AppShell>;
+  const coins = session?.user?.id
+    ? (await gamificationRepository.findByUser(session.user.id)).coins
+    : 0;
+
+  return (
+    <AppShell user={user} coins={coins}>
+      {children}
+    </AppShell>
+  );
 }

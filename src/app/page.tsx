@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { LandingCat } from "@/components/features/LandingCat";
 
 export default function LandingPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-2">
-          <img src="/pets/orange-cat/happy.svg" alt="" className="h-8 w-auto" />
+          <img src="/nav-cat.svg" alt="" className="h-8 w-auto" />
           <span className="font-heading text-lg font-bold">MyThingsToDo</span>
         </div>
         <Link
@@ -17,7 +18,7 @@ export default function LandingPage() {
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center gap-8 px-4 text-center">
-        <img src="/pets/orange-cat/happy.svg" alt="" className="h-40 w-auto" />
+        <LandingCat />
 
         <div className="max-w-sm space-y-3">
           <h1 className="font-heading text-3xl font-bold tracking-tight">

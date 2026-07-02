@@ -20,6 +20,9 @@ interface TasksClientProps {
   longestStreak: number;
   petMood: "HAPPY" | "NEUTRAL" | "SAD";
   petType: string;
+  accessories: string[];
+  decoration: string | null;
+  effect: string;
 }
 
 export function TasksClient({
@@ -28,11 +31,15 @@ export function TasksClient({
   longestStreak,
   petMood,
   petType,
+  accessories,
+  decoration,
+  effect,
 }: TasksClientProps) {
   const { tasks, toggleTask, addTask, replaceTask, reorderVisible } = useOptimisticTasks(initialTasks);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isOrdering, setIsOrdering] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
   const [, startTransition] = useTransition();
   const { isDirty, setIsDirty, saveOrder } = useDragOrder();
   const enrichedRef = useRef<Map<string, { emotionalType: string; estimatedMinutes: number | null }>>(new Map());
@@ -47,8 +54,13 @@ export function TasksClient({
     const wasDone = task?.status === "DONE";
     const doneBefore = initialTasks.filter((t) => t.status === "DONE").length;
 
-    if (!wasDone && doneBefore + 1 === initialTasks.length) {
-      triggerRewardToast({ type: "daily" });
+    if (!wasDone) {
+      setCelebrating(true);
+      setTimeout(() => setCelebrating(false), 1500);
+
+      if (doneBefore + 1 === initialTasks.length) {
+        triggerRewardToast({ type: "daily" });
+      }
     }
 
     startTransition(() => {
@@ -171,7 +183,9 @@ export function TasksClient({
         <StreakIndicator currentStreak={currentStreak} longestStreak={longestStreak} />
       </div>
 
-      <PetWidget mood={currentMood} size="compact" petType={petType} />
+      <div className="flex justify-center">
+        <PetWidget mood={currentMood} petType={petType} accessories={accessories} decoration={decoration ?? undefined} effect={effect} celebrating={celebrating} />
+      </div>
 
       {showForm ? (
         <div className="rounded-xl border border-border bg-background p-4 shadow-sm">

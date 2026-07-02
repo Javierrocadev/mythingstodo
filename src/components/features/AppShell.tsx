@@ -64,9 +64,11 @@ const navItems = [
 export function AppShell({
   children,
   user,
+  coins = 0,
 }: {
   children: React.ReactNode;
   user?: { name: string | null; image: string | null } | null;
+  coins?: number;
 }) {
   const pathname = usePathname();
 
@@ -74,7 +76,7 @@ export function AppShell({
     <div className="flex min-h-dvh w-full flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <img src="/pets/orange-cat/neutral.svg" alt="" className="h-7 w-auto" />
+          <img src="/nav-cat.svg" alt="" className="h-7 w-auto" />
           <span className="font-display text-lg font-bold">MyThingsToDo</span>
         </div>
         <div className="flex items-center gap-3">
@@ -96,11 +98,11 @@ export function AppShell({
               </span>
             </Link>
           ) : null}
-          <CoinCounter />
+          <CoinCounter coins={coins} />
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-4">{children}</main>
+      <main className="flex-1 overflow-y-auto px-4 pt-10 pb-4">{children}</main>
 
       <nav className="flex items-center justify-around border-t border-border bg-background px-2 pb-2 pt-1">
         {navItems.map((item) => {

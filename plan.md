@@ -181,11 +181,11 @@ Día 5 — Integración de IA (parte 2) + conexión al flujo
 
 SEMANA 4 — Animaciones, Testing, Pulido y Deploy
 
-Día 1-2 — Framer Motion
+Día 1-2 — Framer Motion + Lottie
 
-- [ ] Transición de mood del gato (feliz ↔ neutral ↔ triste) suave, sin saltos brutos
-- [ ] Animación de idle del gato (respiración/parpadeo sutil, nada que distraiga)
-- [ ] Celebración real al completar tarea (confeti ligero + reacción del gato) — nada de animaciones infinitas o sobrecargadas (recordar alerta UX del brief)
+- [x] Transición de mood del gato (feliz ↔ neutral ↔ triste) suave — vía CatLottie con JSONs de mood + AnimatePresence
+- [x] Animación de idle del gato (respiración/parpadeo sutil) — Lottie nativo + Framer Motion container scale
+- [x] Celebración real al completar tarea (confeti Lottie + reacción del gato) — vía EffectOverlay con JSONs de efectos
 - [ ] Transición de entrada/salida del NewTaskForm (Sheet/Dialog)
 - [ ] Transiciones entre pantallas del dashboard (sutiles)
 - [ ] Animación del ProgressBar al subir el % (no instantáneo, que se sienta el avance)

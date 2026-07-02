@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { PetWidget } from "@/components/features/PetWidget";
 import { TaskCard } from "@/components/features/TaskCard";
 import { useOptimisticTasks } from "@/hooks/useOptimisticTask";
@@ -19,25 +19,34 @@ interface HomeClientProps {
   tasks: TaskData[];
   petMood: "HAPPY" | "NEUTRAL" | "SAD";
   petType: string;
+  accessories: string[];
+  decoration: string | null;
+  effect: string;
 }
 
-export function HomeClient({ tasks: initialTasks, petMood, petType }: HomeClientProps) {
+export function HomeClient({ tasks: initialTasks, petMood, petType, accessories, decoration, effect }: HomeClientProps) {
   const { tasks, toggleTask } = useOptimisticTasks(initialTasks);
   const [, startTransition] = useTransition();
+  const [celebrating, setCelebrating] = useState(false);
 
   const activeTask = tasks.find((t) => t.status !== "DONE") ?? null;
   const completedCount = tasks.filter((t) => t.status === "DONE").length;
 
-  const handleComplete = (id: string) => {
+  const handleComplete = useCallback((id: string) => {
+    const wasDone = initialTasks.find((t) => t.id === id)?.status === "DONE";
+    if (!wasDone) {
+      setCelebrating(true);
+      setTimeout(() => setCelebrating(false), 1500);
+    }
     startTransition(() => {
       toggleTask(id);
       completeTask(id);
     });
-  };
+  }, [initialTasks, toggleTask]);
 
   return (
     <div className="flex flex-col items-center gap-8 py-6">
-      <PetWidget mood={petMood} petType={petType} />
+      <PetWidget mood={petMood} petType={petType} accessories={accessories} decoration={decoration ?? undefined} effect={effect} celebrating={celebrating} />
 
       <section className="w-full">
         <h2 className="font-heading mb-3 text-lg font-semibold">

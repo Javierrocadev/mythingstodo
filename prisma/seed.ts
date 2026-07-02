@@ -3,137 +3,35 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const user = await prisma.user.create({
-    data: {
-      email: "test@mythingstodo.app",
-      name: "Michi",
-      onboardingCompleted: true,
-      onboardingWorkType: "both",
-      onboardingDailyTime: 30,
-      energy: 100,
-      burnout: 0,
-    },
-  });
+  const items = [
+    { name: "Gato Naranja", category: "PET" as const, price: 0, imageUrl: "/pets/orange-cat/happy.svg" },
+    { name: "Gato Negro", category: "PET" as const, price: 50, imageUrl: "/pets/black-cat/happy.svg" },
+    { name: "Sombrero", category: "ACCESSORY" as const, price: 0, imageUrl: "/accessories/hat.json" },
+    { name: "Sombrero Verde", category: "ACCESSORY" as const, price: 50, imageUrl: "/accessories/hat-green.json" },
+    { name: "Gafas", category: "ACCESSORY" as const, price: 75, imageUrl: "/accessories/glasses.json" },
+    { name: "Fondo de Bosque", category: "DECORATION" as const, price: 0, imageUrl: "/decorations/forest-bg.svg" },
+    { name: "Clásico", category: "DECORATION" as const, price: 0, imageUrl: "" },
+    { name: "Puntos Cálidos", category: "DECORATION" as const, price: 150, imageUrl: "/decorations/cozy-dots.svg" },
+    { name: "Noche Estrellada", category: "DECORATION" as const, price: 150, imageUrl: "/decorations/starry-night.svg" },
+    { name: "Confeti", category: "ANIMATION" as const, price: 0, imageUrl: "/animations/confetti.json" },
+    { name: "Celebración", category: "ANIMATION" as const, price: 100, imageUrl: "/animations/celebration.json" },
+  ];
 
-  await prisma.pet.create({
-    data: {
-      userId: user.id,
-      currentMood: "HAPPY",
-    },
-  });
-
-  await prisma.gamificationState.create({
-    data: {
-      userId: user.id,
-      coins: 50,
-      xp: 120,
-      level: 2,
-      dailyProgress: 0,
-    },
-  });
-
-  await prisma.streak.create({
-    data: {
-      userId: user.id,
-      currentStreak: 3,
-      longestStreak: 5,
-    },
-  });
-
-  await prisma.task.createMany({
-    data: [
-      {
-        userId: user.id,
-        title: "Preparar presentación del jueves",
-        urgency: "NOW",
-        emotionalType: "BORING",
-        estimatedMinutes: 60,
-        status: "TODO",
-        order: 1,
-      },
-      {
-        userId: user.id,
-        title: "Comprar comida del gato",
-        urgency: "TODAY",
-        emotionalType: "SATISFYING",
-        estimatedMinutes: 15,
-        status: "TODO",
-        order: 2,
-      },
-      {
-        userId: user.id,
-        title: "Leer capítulo 3 del libro",
-        urgency: "MARGIN",
-        emotionalType: "SATISFYING",
-        estimatedMinutes: 30,
-        deadline: new Date("2026-07-01"),
-        status: "TODO",
-        order: 3,
-      },
-      {
-        userId: user.id,
-        title: "Llamar al seguro",
-        urgency: "TODAY",
-        emotionalType: "DRAINING",
-        estimatedMinutes: 20,
-        status: "TODO",
-        order: 4,
-      },
-    ],
-  });
-
-  const defaultCat = await prisma.shopItem.create({
-    data: {
-      name: "Gato Naranja",
-      category: "PET",
-      price: 0,
-      imageUrl: "/pets/orange-cat/happy.svg",
-      isActive: true,
-    },
-  });
-
-  await prisma.shopItem.createMany({
-    data: [
-      {
-        name: "Sombrero de Chef",
-        category: "ACCESSORY",
-        price: 100,
-        imageUrl: "/accessories/chef-hat.svg",
-        isActive: true,
-      },
-      {
-        name: "Gafas de Sol",
-        category: "ACCESSORY",
-        price: 75,
-        imageUrl: "/accessories/sunglasses.svg",
-        isActive: true,
-      },
-      {
-        name: "Fondo de Bosque",
-        category: "DECORATION",
-        price: 200,
-        imageUrl: "/decorations/forest-bg.svg",
-        isActive: true,
-      },
-    ],
-  });
-
-  await prisma.inventoryItem.create({
-    data: {
-      userId: user.id,
-      shopItemId: defaultCat.id,
-      isEquipped: true,
-      equippedAt: new Date(),
-    },
-  });
-
-  await prisma.rewardLog.create({
-    data: {
-      userId: user.id,
-      amount: 50,
-      reason: "onboarding_bonus",
-    },
-  });
+  for (const item of items) {
+    const exists = await prisma.shopItem.findFirst({
+      where: { name: item.name, category: item.category },
+    });
+    if (exists) {
+      await prisma.shopItem.update({
+        where: { id: exists.id },
+        data: { price: item.price, imageUrl: item.imageUrl, isActive: true },
+      });
+      console.log(`  Updated: ${item.name} -> ${item.price} coins`);
+    } else {
+      await prisma.shopItem.create({ data: { ...item, isActive: true } });
+      console.log(`  Added: ${item.name}`);
+    }
+  }
 
   console.log("Seed complete");
 }

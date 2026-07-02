@@ -30,21 +30,23 @@ export async function equipItem(shopItemId: string) {
   const category = inventoryItem.shopItem.category as "PET" | "ANIMATION" | "DECORATION" | "ACCESSORY";
 
   if (!inventoryItem.isEquipped) {
-    if (!canEquip(currentEquipped, category)) {
-      throw new Error("Límite de equipamiento alcanzado");
-    }
-
     if (category === "PET") {
       await prisma.inventoryItem.updateMany({
         where: { userId: session.user.id, isEquipped: true, shopItem: { category: "PET" } },
         data: { isEquipped: false, equippedAt: null },
       });
-    }
-    if (category === "ANIMATION") {
+    } else if (category === "ANIMATION") {
       await prisma.inventoryItem.updateMany({
         where: { userId: session.user.id, isEquipped: true, shopItem: { category: "ANIMATION" } },
         data: { isEquipped: false, equippedAt: null },
       });
+    } else if (category === "DECORATION") {
+      await prisma.inventoryItem.updateMany({
+        where: { userId: session.user.id, isEquipped: true, shopItem: { category: "DECORATION" } },
+        data: { isEquipped: false, equippedAt: null },
+      });
+    } else if (!canEquip(currentEquipped, category)) {
+      throw new Error("Límite de equipamiento alcanzado");
     }
 
     await prisma.inventoryItem.update({

@@ -31,6 +31,16 @@ export default async function ShopPage() {
       }))}
       ownedIds={new Set(inventory.map((inv) => inv.shopItemId))}
       equippedIds={new Set(inventory.filter((inv) => inv.isEquipped).map((inv) => inv.shopItemId))}
+      equippedAccessories={inventory
+        .filter((inv) => inv.isEquipped && inv.shopItem.category === "ACCESSORY")
+        .map((inv) => inv.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "")
+        .filter(Boolean)}
+      equippedDecoration={inventory
+        .find((inv) => inv.isEquipped && inv.shopItem.category === "DECORATION" && inv.shopItem.imageUrl)
+        ?.shopItem.imageUrl ?? null}
+      equippedAnimation={inventory
+        .find((inv) => inv.isEquipped && inv.shopItem.category === "ANIMATION")
+        ?.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "confetti"}
       coins={gState.coins}
       petMood={(pet?.currentMood ?? "NEUTRAL") as "HAPPY" | "NEUTRAL" | "SAD"}
       selectedPetType={activeSkin?.shopItem.imageUrl?.split("/")[2] ?? "orange-cat"}
