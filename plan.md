@@ -186,17 +186,17 @@ Día 1-2 — Framer Motion + Lottie
 - [x] Transición de mood del gato (feliz ↔ neutral ↔ triste) suave — vía CatLottie con JSONs de mood + AnimatePresence
 - [x] Animación de idle del gato (respiración/parpadeo sutil) — Lottie nativo + Framer Motion container scale
 - [x] Celebración real al completar tarea (confeti Lottie + reacción del gato) — vía EffectOverlay con JSONs de efectos
-- [ ] Transición de entrada/salida del NewTaskForm (Sheet/Dialog)
-- [ ] Transiciones entre pantallas del dashboard (sutiles)
-- [ ] Animación del ProgressBar al subir el % (no instantáneo, que se sienta el avance)
+- [x] Transición de entrada/salida del NewTaskForm (Sheet/Dialog)
+- [x] Transiciones entre pantallas del dashboard (sutiles)
+- [x] Animación del ProgressBar al subir el % (no instantáneo, que se sienta el avance)
 
 Día 3 — Testing
 
-- [ ] Vitest config (vitest.config.ts) + setup de RTL
-- [ ] Tests de lib/core/\* (ya escritos parcialmente en semana 3, completar cobertura):
-  - [ ] task-score.ts — casos límite (sin deadline, deadline hoy, todas urgentes)
-  - [ ] pet-mood.ts — todas las combinaciones streak/progreso
-  - [ ] equip-rules.ts — límites exactos (2→3 ok, 3→4 falla)
+- [x] Vitest config (vitest.config.ts)
+- [x] Tests de lib/core/\* (completados):
+  - [x] task-score.ts — 11 tests (scoreTask con deadline, sin deadline, emociones; sortTasksByScore)
+  - [x] pet-mood.ts — 6 tests (todas las combinaciones streak/progreso)
+  - [x] equip-rules.ts — 7 tests (límites exactos: 2→3 ok, 3→4 falla, PET/ANIMATION max 1)
 - [ ] Tests de componentes con RTL:
   - [ ] TaskCard dispara onComplete correctamente
   - [ ] NewTaskForm no permite guardar sin título, no acepta texto libre fuera de él
