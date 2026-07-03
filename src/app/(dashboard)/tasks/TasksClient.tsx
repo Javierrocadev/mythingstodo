@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { DragList } from "@/components/features/DragList";
 import { TaskCard } from "@/components/features/TaskCard";
 import { NewTaskForm } from "@/components/features/NewTaskForm";
@@ -47,6 +48,9 @@ export function TasksClient({
   const todoTasks = tasks.filter((t) => t.status !== "DONE");
   const doneTasks = tasks.filter((t) => t.status === "DONE");
   const totalCount = tasks.length;
+  const taskWeights = { NOW: 3, TODAY: 2, MARGIN: 1 } as const;
+  const totalWeight = tasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
+  const completedWeight = doneTasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
   const completedCount = doneTasks.length;
 
   const handleComplete = useCallback((id: string) => {
@@ -179,7 +183,6 @@ export function TasksClient({
   return (
     <div className="flex flex-col gap-4 py-4">
       <div className="flex items-center justify-between">
-        <ProgressBar completed={completedCount} total={totalCount} />
         <StreakIndicator currentStreak={currentStreak} longestStreak={longestStreak} />
       </div>
 
@@ -187,74 +190,100 @@ export function TasksClient({
         <PetWidget mood={currentMood} petType={petType} accessories={accessories} decoration={decoration ?? undefined} effect={effect} celebrating={celebrating} />
       </div>
 
-      {showForm ? (
-        <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
-          <h3 className="font-heading mb-4 text-base font-semibold">
-            {editingId ? "Editar tarea" : "Nueva tarea"}
-          </h3>
-          <NewTaskForm
-            initialData={
-              editingId
-                ? (() => {
-                    const t = tasks.find((t) => t.id === editingId);
-                    return t ? {
-                      title: t.title,
-                      urgency: t.urgency,
-                      emotionalType: t.emotionalType,
-                      deadline: t.deadline ?? undefined,
-                      estimatedMinutes: t.estimatedMinutes,
-                    } : undefined;
-                  })()
-                : undefined
-            }
-            onSave={handleSave}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingId(null);
-            }}
-          />
-        </div>
-      ) : todoTasks.length > 0 ? (
-        <>
-          <DragList
-            tasks={todoTasks}
-            onReorder={handleReorder}
-            onComplete={handleComplete}
-            onEdit={handleEdit}
-          />
-          <div className="flex justify-center gap-3">
-            {todoTasks.length >= 2 && (
+      <ProgressBar
+        tasks={tasks.map((t) => ({ id: t.id, urgency: t.urgency, done: t.status === "DONE" }))}
+      />
+
+      <AnimatePresence mode="wait">
+        {showForm ? (
+          <motion.div
+            key="form"
+            initial={{ opacity: 0, y: -16, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
+              <h3 className="font-heading mb-4 text-base font-semibold">
+                {editingId ? "Editar tarea" : "Nueva tarea"}
+              </h3>
+              <NewTaskForm
+                initialData={
+                  editingId
+                    ? (() => {
+                        const t = tasks.find((t) => t.id === editingId);
+                        return t ? {
+                          title: t.title,
+                          urgency: t.urgency,
+                          emotionalType: t.emotionalType,
+                          deadline: t.deadline ?? undefined,
+                          estimatedMinutes: t.estimatedMinutes,
+                        } : undefined;
+                      })()
+                    : undefined
+                }
+                onSave={handleSave}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditingId(null);
+                }}
+              />
+            </div>
+          </motion.div>
+        ) : todoTasks.length > 0 ? (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <DragList
+              tasks={todoTasks}
+              onReorder={handleReorder}
+              onComplete={handleComplete}
+              onEdit={handleEdit}
+            />
+            <div className="mt-8 flex justify-center gap-3">
+              {todoTasks.length >= 2 && (
+                <button
+                  onClick={handleAiOrder}
+                  disabled={isOrdering}
+                  className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+                >
+                  {isOrdering ? (
+                    <>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+                      Ordenando...
+                    </>
+                  ) : (
+                    "✨ Ordenar con IA"
+                  )}
+                </button>
+              )}
               <button
-                onClick={handleAiOrder}
-                disabled={isOrdering}
-                className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+                onClick={handleSaveOrder}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-2 text-sm font-medium transition-colors"
               >
-                {isOrdering ? (
-                  <>
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-                    Ordenando...
-                  </>
-                ) : (
-                  "✨ Ordenar con IA"
-                )}
+                {isDirty ? "Guardar orden *" : "Guardar orden"}
               </button>
-            )}
-            <button
-              onClick={handleSaveOrder}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-2 text-sm font-medium transition-colors"
-            >
-              {isDirty ? "Guardar orden *" : "Guardar orden"}
-            </button>
-          </div>
-        </>
-      ) : (
-        <EmptyState
-          icon="🎉"
-          title="¡Todo listo!"
-          description="Has completado todas tus tareas. ¿Quieres añadir alguna más?"
-          action={{ label: "Añadir tarea", onClick: () => setShowForm(true) }}
-        />
-      )}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <EmptyState
+              icon="🎉"
+              title="¡Todo listo!"
+              description="Has completado todas tus tareas. ¿Quieres añadir alguna más?"
+              action={{ label: "Añadir tarea", onClick: () => setShowForm(true) }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {doneTasks.length > 0 && (
         <details className="group">

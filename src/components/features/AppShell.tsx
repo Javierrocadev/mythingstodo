@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { CoinCounter } from "./CoinCounter";
 
 const navItems = [
@@ -102,7 +103,19 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 pt-10 pb-4">{children}</main>
+      <main className="flex-1 overflow-y-auto px-4 pt-10 pb-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
 
       <nav className="flex items-center justify-around border-t border-border bg-background px-2 pb-2 pt-1">
         {navItems.map((item) => {
