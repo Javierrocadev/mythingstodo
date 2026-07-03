@@ -2,7 +2,12 @@
 
 import { useState, useTransition, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DragList } from "@/components/features/DragList";
+import dynamic from "next/dynamic";
+
+const DragList = dynamic(() => import("@/components/features/DragList").then((m) => m.DragList), {
+  ssr: false,
+  loading: () => <div className="flex flex-col gap-2">{/* placeholder */}</div>,
+});
 import { TaskCard } from "@/components/features/TaskCard";
 import { NewTaskForm } from "@/components/features/NewTaskForm";
 import { FloatingAddButton } from "@/components/features/FloatingAddButton";
@@ -74,9 +79,7 @@ export function TasksClient({
   }, [initialTasks, toggleTask]);
 
   const handleReorder = useCallback((reordered: TaskData[]) => {
-    startTransition(() => {
-      reorderVisible(reordered);
-    });
+    reorderVisible(reordered);
     setIsDirty(true);
   }, [reorderVisible, setIsDirty]);
 
@@ -262,9 +265,10 @@ export function TasksClient({
               )}
               <button
                 onClick={handleSaveOrder}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-2 text-sm font-medium transition-colors"
+                disabled={!isDirty}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-2 text-sm font-medium transition-colors disabled:opacity-50"
               >
-                {isDirty ? "Guardar orden *" : "Guardar orden"}
+                Guardar orden
               </button>
             </div>
           </motion.div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useCallback } from "react";
+import { useReducer, useCallback } from "react";
 
 export interface TaskData {
   id: string;
@@ -38,27 +38,27 @@ function tasksReducer(state: TaskData[], action: Action): TaskData[] {
 }
 
 export function useOptimisticTasks(initialTasks: TaskData[]) {
-  const [optimisticTasks, addOptimistic] = useOptimistic(initialTasks, tasksReducer);
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
 
   const toggleTask = useCallback(
-    (id: string) => addOptimistic({ type: "toggle", id }),
-    [addOptimistic],
+    (id: string) => dispatch({ type: "toggle", id }),
+    [],
   );
 
   const addTask = useCallback(
-    (task: TaskData) => addOptimistic({ type: "create", task }),
-    [addOptimistic],
+    (task: TaskData) => dispatch({ type: "create", task }),
+    [],
   );
 
   const replaceTask = useCallback(
-    (task: TaskData) => addOptimistic({ type: "replace", task }),
-    [addOptimistic],
+    (task: TaskData) => dispatch({ type: "replace", task }),
+    [],
   );
 
   const reorderVisible = useCallback(
-    (tasks: TaskData[]) => addOptimistic({ type: "reorder", tasks }),
-    [addOptimistic],
+    (tasks: TaskData[]) => dispatch({ type: "reorder", tasks }),
+    [],
   );
 
-  return { tasks: optimisticTasks, toggleTask, addTask, replaceTask, reorderVisible };
+  return { tasks, toggleTask, addTask, replaceTask, reorderVisible };
 }

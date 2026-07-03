@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -92,12 +91,6 @@ export function DragList({
   onComplete,
   onEdit,
 }: DragListProps) {
-  const [items, setItems] = useState(tasks);
-
-  useEffect(() => {
-    setItems(tasks);
-  }, [tasks]);
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -106,13 +99,12 @@ export function DragList({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = items.findIndex((t) => t.id === active.id);
-    const newIndex = items.findIndex((t) => t.id === over.id);
+    const oldIndex = tasks.findIndex((t) => t.id === active.id);
+    const newIndex = tasks.findIndex((t) => t.id === over.id);
 
-    const reordered = [...items];
+    const reordered = [...tasks];
     const [moved] = reordered.splice(oldIndex, 1);
     reordered.splice(newIndex, 0, moved);
-    setItems(reordered);
     onReorder(reordered);
   };
 
@@ -122,9 +114,9 @@ export function DragList({
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={items.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-2">
-          {items.map((task) => (
+          {tasks.map((task) => (
             <SortableTaskCard
               key={task.id}
               task={task}
