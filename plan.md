@@ -221,6 +221,71 @@ Día 5 — Deploy final
 - [ ] Lighthouse rápido (performance/accesibilidad básica)
 - [ ] Buffer para lo que haya quedado a medias de días anteriores
 
+## SEMANA 5 — Landing Page
+
+### Día 1 — Componentes de landing (parte 1)
+
+- [x] Crear carpeta `src/components/landing/`
+- [x] `LandingNav.tsx` — Navbar sticky con:
+  - Logo + "MyThingsToDo" a la izquierda
+  - Links de navegación (scroll suave a secciones): Cómo funciona, Características, Tienda
+  - CTA "Usar la app" → `/home` (botón primary) e "Iniciar sesión" → `/login` (texto)
+  - `backdrop-blur-sm`, `border-b border-border`, layout horizontal responsive
+- [x] `LandingHero.tsx` — Hero con:
+  - `CatLottie` (mood HAPPY, petType orange-cat) como elemento central
+  - Heading: "Tus cosas, tu gato, **sin culpa**" con `font-heading`
+  - Subtítulo explicativo
+  - 2 CTAs: "Usar la app" (primary) y "Más información" (secondary, scroll a features)
+  - En móvil: apilado vertical; en desktop: texto + gato lado a lado
+- [x] `CtaBanner.tsx` — Banner tipo card cerrada:
+  - `bg-gradient`, `rounded-2xl`, `p-8 md:p-12`
+  - Heading + descripción a la izquierda, botón CTA a la derecha
+  - `flex flex-col md:flex-row items-center justify-between gap-6`
+
+### Día 2 — Componentes de landing (parte 2)
+
+- [x] `HowItWorks.tsx` — 4 filas zigzag alternadas (texto/visual):
+  - Fila 1: "Añade en segundos" → mini mock del formulario (input + botones urgencia)
+  - Fila 2: mini DragList mock → "Ordena con IA"
+  - Fila 3: "Sin culpa, siempre" → mini PetWidget mock con gato HAPPY
+  - Fila 4: mini shop mock con coins/ítems → "Gamifica sin estrés"
+  - Cada fila: `grid grid-cols-1 md:grid-cols-2 gap-12`, animación `whileInView`
+  - Los mocks son divs estilizados con Tailwind (no funcionales, solo visuales)
+- [x] `FeaturesGrid.tsx` — Grid 2×2 de tarjetas:
+  - ⚡ Rápido / 🧘 Sin culpa / 🎮 Jugable / 🪙 Gratis
+  - Cada una con emoji, título `font-heading`, descripción, `bg-card rounded-2xl shadow-sm ring-1 ring-border/50`
+- [x] `PetShowcase.tsx` — Showcase interactivo con pestañas:
+  - Izquierda: `CatLottie` animado con decoration bg + EffectOverlay
+  - Derecha: tabs por categoría (Mascotas/Accesorios/Decoración/Efectos)
+  - Click en items cambia el gato en tiempo real (estado local, sin DB)
+  - Misma mecánica visual que la tienda (ring-2 ring-primary en equipado)
+
+### Día 3 — Montaje y pulido
+
+- [x] Reescribir `src/app/page.tsx`:
+  - Importar y orquestar las 5 secciones en orden
+  - Layout: secciones separadas por `py-16 md:py-24`, `max-w-6xl mx-auto px-4`
+  - Añadir footer minimal (logo + "Hecho con 💛" + link a login)
+- [x] Animaciones de entrada con Framer Motion:
+  - Hero: fade + slide up en el texto, floating cards con stagger
+  - Secciones: `whileInView` con `once: true` para que aparezcan al scrollear
+- [x] Responsive testing:
+  - Mobile first: todo apilado, nav simplificado
+  - Desktop: zigzag, grid 2×2, hero con cards flotantes lado a lado
+  - Verificar que `CatLottie` se renderiza correctamente en todos los tamaños
+
+### Día 4 — QA y ajustes finales
+
+- [ ] Revisar que ningún componente de `features/` se modificó (solo se importan)
+- [ ] Verificar que login sigue funcionando en `/login`
+- [ ] Verificar que dashboard sigue funcionando en `/(dashboard)/*`
+- [ ] Probar flujo completo: Landing → Usar la app → Home (modo invitado)
+- [ ] Probar flujo: Landing → Iniciar sesión → Login → Google OAuth → Dashboard
+- [ ] Revisar Lighthouse (performance, accesibilidad)
+- [ ] Borrar página `/dev/ui-kit` si existe
+
+---
+
 Notas y decisiones pendientes a lo largo del proyecto
 
 - [ ] Proveedor de IA definitivo: ⬜ Gemini ⬜ HuggingFace ⬜ otro
