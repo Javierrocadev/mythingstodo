@@ -38,21 +38,17 @@ function fallbackSort(tasks: AiTaskData[], now: Date): AiTaskData[] {
   return [...tasks].sort((a, b) => scoreTask(b, now) - scoreTask(a, now));
 }
 
-export async function orderTasks(
-  tasks: AiTaskData[],
-  now: Date,
-): Promise<AiTaskData[]> {
+export async function orderTasks(tasks: AiTaskData[], now: Date): Promise<AiTaskData[]> {
   try {
     const prompt = buildPrompt(tasks);
 
     console.log("[orderTasks] Calling AI with", tasks.length, "tasks");
 
     const { object } = await generateObject({
-      model: google("gemini-3.5-flash"),
+      model: google("gemini-3.1-flash-lite"),
       schema: responseSchema,
       system: SYSTEM_INSTRUCTION,
       prompt,
-      temperature: 0.1,
       maxRetries: 2,
     });
 

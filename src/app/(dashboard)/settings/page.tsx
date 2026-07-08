@@ -76,15 +76,18 @@ export default async function SettingsPage() {
 
         {stats.tasksByUrgency.length > 0 && (
           <div className="mt-4 rounded-xl border border-border p-4">
-            <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wider">
+            <p className="text-muted-foreground mb-4 text-xs font-medium uppercase tracking-wider">
               Completadas por urgencia
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {stats.tasksByUrgency.map((t) => (
-                <div key={t.urgency} className="flex items-center justify-between">
-                  <span className="text-sm">{URGENCY_LABEL[t.urgency] ?? t.urgency}</span>
-                  <span className="font-display text-sm font-bold">{t.count}</span>
-                </div>
+                <BarRow
+                  key={t.urgency}
+                  label={URGENCY_LABEL[t.urgency] ?? t.urgency}
+                  count={t.count}
+                  max={stats.tasksByUrgency[0].count}
+                  color={URGENCY_COLORS[t.urgency]}
+                />
               ))}
             </div>
           </div>
@@ -92,15 +95,18 @@ export default async function SettingsPage() {
 
         {stats.tasksByEmotionalType.length > 0 && (
           <div className="mt-3 rounded-xl border border-border p-4">
-            <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wider">
+            <p className="text-muted-foreground mb-4 text-xs font-medium uppercase tracking-wider">
               Completadas por tipo emocional
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {stats.tasksByEmotionalType.map((t) => (
-                <div key={t.emotionalType} className="flex items-center justify-between">
-                  <span className="text-sm">{EMOTION_LABEL[t.emotionalType] ?? t.emotionalType}</span>
-                  <span className="font-display text-sm font-bold">{t.count}</span>
-                </div>
+                <BarRow
+                  key={t.emotionalType}
+                  label={EMOTION_LABEL[t.emotionalType] ?? t.emotionalType}
+                  count={t.count}
+                  max={stats.tasksByEmotionalType[0].count}
+                  color={EMOTION_COLORS[t.emotionalType]}
+                />
               ))}
             </div>
           </div>
@@ -120,6 +126,50 @@ export default async function SettingsPage() {
           Cerrar sesión
         </button>
       </form>
+    </div>
+  );
+}
+
+const URGENCY_COLORS: Record<string, string> = {
+  NOW: "bg-rose-400",
+  TODAY: "bg-amber-400",
+  MARGIN: "bg-emerald-400",
+};
+
+const EMOTION_COLORS: Record<string, string> = {
+  SATISFYING: "bg-emerald-400",
+  NORMAL: "bg-sky-400",
+  BORING: "bg-stone-400",
+  DRAINING: "bg-violet-400",
+};
+
+function BarRow({
+  label,
+  count,
+  max,
+  color,
+}: {
+  label: string;
+  count: number;
+  max: number;
+  color: string;
+}) {
+  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className="w-28 shrink-0 text-sm font-medium">{label}</span>
+      <div className="flex flex-1 items-center gap-2">
+        <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
+          <div
+            className={`${color} h-full rounded-full transition-all`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <span className="font-display w-8 text-right text-sm font-bold tabular-nums">
+          {count}
+        </span>
+      </div>
     </div>
   );
 }
