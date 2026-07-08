@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
+import { track } from "@vercel/analytics/server";
 import { scoreTask } from "@/lib/core/task/task-score";
 
 interface AiTaskData {
@@ -54,8 +55,11 @@ export async function orderTasks(tasks: AiTaskData[], now: Date): Promise<AiTask
 
     if (!object.tasks || object.tasks.length === 0) {
       console.warn("[orderTasks] AI returned empty — fallback triggered");
+      track("ai_ordered", { method: "fallback", reason: "empty_result", taskCount: tasks.length });
       return fallbackSort(tasks, now);
     }
+
+    track("ai_ordered", { method: "ai", taskCount: tasks.length });
 
     const idSet = new Set(tasks.map((t) => t.id));
     const ordered = object.tasks
@@ -76,6 +80,7 @@ export async function orderTasks(tasks: AiTaskData[], now: Date): Promise<AiTask
     return [...ordered, ...remaining];
   } catch (err) {
     console.error("[orderTasks] AI call failed — fallback triggered", err);
+    track("ai_ordered", { method: "fallback", reason: "error", taskCount: tasks.length });
     return fallbackSort(tasks, now);
   }
 }
