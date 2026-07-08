@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useCallback, useRef } from "react";
+import { useEffect, useState, useTransition, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 
@@ -15,10 +15,17 @@ import { EmptyState } from "@/components/features/EmptyState";
 import { PetWidget } from "@/components/features/PetWidget";
 import { StreakIndicator } from "@/components/features/StreakIndicator";
 import { ProgressBar } from "@/components/features/ProgressBar";
+import { DailyEarningsCounter } from "@/components/features/DailyEarningsCounter";
 import { triggerRewardToast } from "@/components/features/RewardToast";
 import { useOptimisticTasks, type TaskData } from "@/hooks/useOptimisticTask";
 import { useDragOrder } from "@/hooks/useDragOrder";
 import { createTask, completeTask, updateTask, aiSuggestOrder, reorderAndEnrich } from "@/lib/actions/task.actions";
+
+interface DailyReward {
+  coins: number;
+  xp: number;
+  count: number;
+}
 
 interface TasksClientProps {
   initialTasks: TaskData[];
@@ -29,6 +36,8 @@ interface TasksClientProps {
   accessories: string[];
   decoration: string | null;
   effect: string;
+  dailyReward: DailyReward | null;
+  todayCompletedCount: number;
 }
 
 export function TasksClient({
@@ -40,8 +49,10 @@ export function TasksClient({
   accessories,
   decoration,
   effect,
+  dailyReward,
+  todayCompletedCount,
 }: TasksClientProps) {
-  const { tasks, toggleTask, addTask, replaceTask, reorderVisible } = useOptimisticTasks(initialTasks);
+  const { tasks, toggleTask, addTask, replaceTask, swapTaskId, reorderVisible } = useOptimisticTasks(initialTasks);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isOrdering, setIsOrdering] = useState(false);
@@ -50,31 +61,37 @@ export function TasksClient({
   const { isDirty, setIsDirty, saveOrder } = useDragOrder();
   const enrichedRef = useRef<Map<string, { emotionalType: string; estimatedMinutes: number | null }>>(new Map());
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const completedToday = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr)).length;
   const todoTasks = tasks.filter((t) => t.status !== "DONE");
-  const doneTasks = tasks.filter((t) => t.status === "DONE");
+  const doneTodayTasks = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr));
   const totalCount = tasks.length;
   const taskWeights = { NOW: 3, TODAY: 2, MARGIN: 1 } as const;
   const totalWeight = tasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
-  const completedWeight = doneTasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
-  const completedCount = doneTasks.length;
+  const completedWeight = doneTodayTasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
+  const completedCount = doneTodayTasks.length;
+
+  useEffect(() => {
+    if (dailyReward) {
+      triggerRewardToast({ type: "dailyReward", ...dailyReward });
+    }
+  }, [dailyReward]);
 
   const handleComplete = useCallback((id: string) => {
     const task = initialTasks.find((t) => t.id === id);
     const wasDone = task?.status === "DONE";
-    const doneBefore = initialTasks.filter((t) => t.status === "DONE").length;
 
     if (!wasDone) {
       setCelebrating(true);
       setTimeout(() => setCelebrating(false), 1500);
-
-      if (doneBefore + 1 === initialTasks.length) {
-        triggerRewardToast({ type: "daily" });
-      }
     }
 
-    startTransition(() => {
+    startTransition(async () => {
       toggleTask(id);
-      completeTask(id);
+      const result = await completeTask(id);
+      if (result?.milestoneCoins) {
+        triggerRewardToast({ type: "milestone", coins: result.milestoneCoins });
+      }
     });
   }, [initialTasks, toggleTask]);
 
@@ -130,6 +147,16 @@ export function TasksClient({
           emotionalType: data.emotionalType,
           estimatedMinutes: data.estimatedMinutes ?? null,
           deadline: data.deadline ? new Date(data.deadline) : null,
+        }).then((realId) => {
+          if (realId) swapTaskId(tempId, {
+            id: realId,
+            title: data.title,
+            urgency: data.urgency,
+            emotionalType: data.emotionalType,
+            estimatedMinutes: data.estimatedMinutes ?? null,
+            deadline: data.deadline ?? null,
+            status: "TODO",
+          });
         });
       }
     });
@@ -193,9 +220,12 @@ export function TasksClient({
         <PetWidget mood={currentMood} petType={petType} accessories={accessories} decoration={decoration ?? undefined} effect={effect} celebrating={celebrating} />
       </div>
 
-      <ProgressBar
-        tasks={tasks.map((t) => ({ id: t.id, urgency: t.urgency, done: t.status === "DONE" }))}
-      />
+      <div className="flex flex-col items-center gap-3">
+        <ProgressBar
+          tasks={tasks.map((t) => ({ id: t.id, urgency: t.urgency, done: t.status === "DONE", completedAt: t.completedAt ?? null }))}
+        />
+        <DailyEarningsCounter completedToday={completedToday} />
+      </div>
 
       <AnimatePresence mode="wait">
         {showForm ? (
@@ -289,13 +319,13 @@ export function TasksClient({
         )}
       </AnimatePresence>
 
-      {doneTasks.length > 0 && (
+      {doneTodayTasks.length > 0 && (
         <details className="group">
           <summary className="text-muted-foreground cursor-pointer py-1 text-xs font-medium">
-            Completadas ({doneTasks.length})
+            Completadas hoy ({doneTodayTasks.length})
           </summary>
           <div className="mt-2 flex flex-col gap-2">
-            {doneTasks.map((task) => (
+            {doneTodayTasks.map((task) => (
               <TaskCard key={task.id} task={task} onComplete={handleComplete} />
             ))}
           </div>

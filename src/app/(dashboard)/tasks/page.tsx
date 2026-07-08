@@ -16,6 +16,13 @@ export default async function TasksPage() {
     petRepository.findActiveSkin(session.user.id),
   ]);
 
+  const dailyReward = await gamificationRepository.claimDailyReward(session.user.id);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayCompletedCount = tasks.filter(
+    (t) => t.status === "DONE" && t.completedAt?.toISOString().startsWith(todayStr),
+  ).length;
+
   const equippedInventory = await prisma.inventoryItem.findMany({
     where: { userId: session.user.id, isEquipped: true },
     include: { shopItem: true },
@@ -37,6 +44,7 @@ export default async function TasksPage() {
         status: t.status as "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED",
         estimatedMinutes: t.estimatedMinutes,
         deadline: t.deadline?.toISOString() ?? null,
+        completedAt: t.completedAt?.toISOString() ?? null,
       }))}
       currentStreak={streak.currentStreak}
       longestStreak={streak.longestStreak}
@@ -45,6 +53,8 @@ export default async function TasksPage() {
       accessories={equippedAccessories.map((inv) => inv.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "").filter(Boolean)}
       decoration={equippedDecoration?.shopItem.imageUrl ?? null}
       effect={equippedAnimation?.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "confetti"}
+      dailyReward={dailyReward}
+      todayCompletedCount={todayCompletedCount}
     />
   );
 }

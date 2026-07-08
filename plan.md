@@ -294,6 +294,16 @@ Notas y decisiones pendientes a lo largo del proyecto
 - [ ] ¿Sistema de anuncios para monedas extra en el MVP?: ⬜ Sí ⬜ Placeholder sin lógica real
 - [ ] Sistema de burnout (energy/burnout en User): confirmado que se mantiene, pero es interno — no se muestra como métrica/barra visible al usuario en ninguna pantalla del MVP (ver CONTEXT.md)
 
+## SEMANA 6 — Estadísticas en Ajustes
+
+### Día 1 — Stats sin gráficos
+
+- [x] `lib/db/stats.repository.ts` — agregaciones: total completadas, XP, nivel, monedas, rachas, monedas ganadas/gastadas, tareas DONE agrupadas por urgencia y tipo emocional
+- [ ] Tests del stats.repository (si da tiempo)
+- [x] Actualizar `app/(dashboard)/settings/page.tsx` — añadir sección de estadísticas con tarjetas numéricas (sin gráficos, solo datos)
+
+---
+
 ### Por hacer antes de continuar (guest/anonymous mode)
 
 - [ ] Resolver cómo se guardan las tareas creadas en modo invitado (almacenamiento local / sesión anónima) y cómo se "adoptan" a la cuenta real al hacer login — detalle completo en `screens.md`, sección 7
@@ -306,3 +316,5 @@ Notas y decisiones pendientes a lo largo del proyecto
 - [x] Onboarding: Server Action crea Pet + Streak + defaultSkin en una transacción
 - [x] ShopView usa canEquip de lib/core, no duplica lógica
 - [x] Orquestación completa de completeTask documentada
+- [x] ProgressBar diario: completedAt determina "completadas hoy", pending tasks rollover natural. El ProgressBar muestra progreso = completadasHoy / (completadasHoy + pendientes), reseteando cada día sin necesidad de scheduledDate en tareas.
+- [x] Recompensas diarias: las monedas/XP se acumulan por tarea completada y se otorgan al abrir la app al día siguiente (simulando medianoche). El `completeTask` ya no da monedas inmediatas. Se añadió `lastRewardDate` y `totalCompleted` a `GamificationState`. Cada 50 tareas totales se da un bonus de 50 monedas (milestone). Se añadió `DailyEarningsCounter` como indicador visual de "Hoy: +X monedas". Las tareas completadas en el Diario solo muestran las de hoy. Se añadió `claimDailyReward` en `gamificationRepository` que se ejecuta al cargar Home o Tasks.

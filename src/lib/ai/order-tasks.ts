@@ -45,6 +45,8 @@ export async function orderTasks(
   try {
     const prompt = buildPrompt(tasks);
 
+    console.log("[orderTasks] Calling AI with", tasks.length, "tasks");
+
     const { object } = await generateObject({
       model: google("gemini-3.5-flash"),
       schema: responseSchema,
@@ -55,6 +57,7 @@ export async function orderTasks(
     });
 
     if (!object.tasks || object.tasks.length === 0) {
+      console.warn("[orderTasks] AI returned empty — fallback triggered");
       return fallbackSort(tasks, now);
     }
 
@@ -75,7 +78,8 @@ export async function orderTasks(
     const remaining = tasks.filter((t) => !object.tasks.some((ai) => ai.id === t.id));
 
     return [...ordered, ...remaining];
-  } catch {
+  } catch (err) {
+    console.error("[orderTasks] AI call failed — fallback triggered", err);
     return fallbackSort(tasks, now);
   }
 }

@@ -7,6 +7,7 @@ interface TaskSegment {
   id: string;
   urgency: "NOW" | "TODAY" | "MARGIN";
   done: boolean;
+  completedAt: string | null;
 }
 
 interface ProgressBarProps {
@@ -20,25 +21,33 @@ const blockColor = {
   MARGIN: "bg-sky-300",
 } as const;
 
+function getTodayStr() {
+  const d = new Date();
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
 export function ProgressBar({ tasks }: ProgressBarProps) {
-  const totalWeight = tasks.reduce((s, t) => s + URGENCY_WEIGHT[t.urgency], 0);
-  const doneWeight = tasks.filter((t) => t.done).reduce((s, t) => s + URGENCY_WEIGHT[t.urgency], 0);
-  const percentage = totalWeight > 0 ? Math.round((doneWeight / totalWeight) * 100) : 0;
-  const doneCount = tasks.filter((t) => t.done).length;
+  const todayStr = getTodayStr();
+  const completedTodayList = tasks.filter((t) => t.done && t.completedAt?.startsWith(todayStr));
+  const completedTodayWeight = completedTodayList.reduce((s, t) => s + URGENCY_WEIGHT[t.urgency], 0);
+  const pendingTasks = tasks.filter((t) => !t.done);
+  const pendingWeight = pendingTasks.reduce((s, t) => s + URGENCY_WEIGHT[t.urgency], 0);
+  const totalWeight = completedTodayWeight + pendingWeight;
+  const percentage = totalWeight > 0 ? Math.round((completedTodayWeight / totalWeight) * 100) : 0;
+  const completedTodayCount = completedTodayList.length;
+  const pendingCount = pendingTasks.length;
 
   const pendingBlocks = useMemo(() => {
     if (totalWeight === 0) return [];
-    const donePct = doneWeight / totalWeight;
+    const donePct = completedTodayWeight / totalWeight;
     let cursor = donePct;
-    return tasks
-      .filter((t) => !t.done)
-      .map((t) => {
-        const w = URGENCY_WEIGHT[t.urgency] / totalWeight;
-        const start = cursor;
-        cursor += w;
-        return { id: t.id, urgency: t.urgency, start, width: w };
-      });
-  }, [tasks, doneWeight, totalWeight]);
+    return pendingTasks.map((t) => {
+      const w = URGENCY_WEIGHT[t.urgency] / totalWeight;
+      const start = cursor;
+      cursor += w;
+      return { id: t.id, urgency: t.urgency, start, width: w };
+    });
+  }, [pendingTasks, completedTodayWeight, totalWeight]);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
@@ -64,7 +73,7 @@ export function ProgressBar({ tasks }: ProgressBarProps) {
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
                 className={`absolute top-0 h-full ${blockColor[b.urgency]}`}
-                style={{ opacity: 0.35, minWidth: 0 }}
+                style={{ opacity: 0.35, minWidth: 2, borderRight: "2px solid var(--color-background)" }}
               />
             ))}
           </AnimatePresence>
@@ -84,17 +93,17 @@ export function ProgressBar({ tasks }: ProgressBarProps) {
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-3">
           <span className="text-muted-foreground text-sm font-medium">
-            {doneCount}/{tasks.length} tareas
+            {completedTodayCount}/{completedTodayCount + pendingCount} hoy
           </span>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1 text-xs text-red-400">
-              ● {tasks.filter((t) => !t.done && t.urgency === "NOW").length}
+              ● {pendingTasks.filter((t) => t.urgency === "NOW").length}
             </span>
             <span className="flex items-center gap-1 text-xs text-amber-500">
-              ● {tasks.filter((t) => !t.done && t.urgency === "TODAY").length}
+              ● {pendingTasks.filter((t) => t.urgency === "TODAY").length}
             </span>
             <span className="flex items-center gap-1 text-xs text-sky-400">
-              ● {tasks.filter((t) => !t.done && t.urgency === "MARGIN").length}
+              ● {pendingTasks.filter((t) => t.urgency === "MARGIN").length}
             </span>
           </div>
         </div>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useTransition, useCallback } from "react";
+import { useEffect, useState, useTransition, useCallback } from "react";
 import { PetWidget } from "@/components/features/PetWidget";
 import { TaskCard } from "@/components/features/TaskCard";
 import { ProgressBar } from "@/components/features/ProgressBar";
+import { DailyEarningsCounter } from "@/components/features/DailyEarningsCounter";
+import { triggerRewardToast } from "@/components/features/RewardToast";
 import { useOptimisticTasks } from "@/hooks/useOptimisticTask";
 import { completeTask } from "@/lib/actions/task.actions";
 
@@ -14,6 +16,13 @@ interface TaskData {
   emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
   status: "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED";
   estimatedMinutes: number | null;
+  completedAt?: string | null;
+}
+
+interface DailyReward {
+  coins: number;
+  xp: number;
+  count: number;
 }
 
 interface HomeClientProps {
@@ -23,6 +32,8 @@ interface HomeClientProps {
   accessories: string[];
   decoration: string | null;
   effect: string;
+  dailyReward: DailyReward | null;
+  todayCompletedCount: number;
 }
 
 export function HomeClient({
@@ -32,14 +43,24 @@ export function HomeClient({
   accessories,
   decoration,
   effect,
+  dailyReward,
+  todayCompletedCount,
 }: HomeClientProps) {
   const { tasks, toggleTask } = useOptimisticTasks(initialTasks);
   const [, startTransition] = useTransition();
   const [celebrating, setCelebrating] = useState(false);
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const completedToday = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr)).length;
   const activeTask = tasks.find((t) => t.status !== "DONE") ?? null;
   const pendingTasks = tasks.filter((t) => t.status !== "DONE" && t.id !== activeTask?.id);
   const doneTasks = tasks.filter((t) => t.status === "DONE");
+
+  useEffect(() => {
+    if (dailyReward) {
+      triggerRewardToast({ type: "dailyReward", ...dailyReward });
+    }
+  }, [dailyReward]);
 
   const handleComplete = useCallback(
     (id: string) => {
@@ -48,9 +69,12 @@ export function HomeClient({
         setCelebrating(true);
         setTimeout(() => setCelebrating(false), 1500);
       }
-      startTransition(() => {
+      startTransition(async () => {
         toggleTask(id);
-        completeTask(id);
+        const result = await completeTask(id);
+        if (result?.milestoneCoins) {
+          triggerRewardToast({ type: "milestone", coins: result.milestoneCoins });
+        }
       });
     },
     [initialTasks, toggleTask],
@@ -69,9 +93,12 @@ export function HomeClient({
         />
       </div>
 
-      <ProgressBar
-        tasks={tasks.map((t) => ({ id: t.id, urgency: t.urgency, done: t.status === "DONE" }))}
-      />
+      <div className="flex flex-col items-center gap-3">
+        <ProgressBar
+          tasks={tasks.map((t) => ({ id: t.id, urgency: t.urgency, done: t.status === "DONE", completedAt: t.completedAt ?? null }))}
+        />
+        <DailyEarningsCounter completedToday={completedToday} />
+      </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="font-heading text-lg font-semibold">

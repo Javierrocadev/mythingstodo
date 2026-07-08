@@ -10,12 +10,14 @@ export interface TaskData {
   status: "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED";
   estimatedMinutes?: number | null;
   deadline?: string | null;
+  completedAt?: string | null;
 }
 
 type Action =
   | { type: "toggle"; id: string }
   | { type: "create"; task: TaskData }
   | { type: "replace"; task: TaskData }
+  | { type: "swapId"; oldId: string; task: TaskData }
   | { type: "reorder"; tasks: TaskData[] };
 
 function tasksReducer(state: TaskData[], action: Action): TaskData[] {
@@ -23,13 +25,19 @@ function tasksReducer(state: TaskData[], action: Action): TaskData[] {
     case "toggle":
       return state.map((t) =>
         t.id === action.id
-          ? { ...t, status: t.status === "DONE" ? "TODO" : "DONE" }
+          ? {
+              ...t,
+              status: t.status === "DONE" ? "TODO" : "DONE",
+              completedAt: t.status === "DONE" ? null : new Date().toISOString(),
+            }
           : t,
       );
     case "create":
       return [...state, action.task];
     case "replace":
       return state.map((t) => (t.id === action.task.id ? action.task : t));
+    case "swapId":
+      return state.map((t) => (t.id === action.oldId ? { ...action.task, id: action.task.id } : t));
     case "reorder":
       return [...action.tasks, ...state.filter((t) => t.status === "DONE")];
     default:
@@ -55,10 +63,15 @@ export function useOptimisticTasks(initialTasks: TaskData[]) {
     [],
   );
 
+  const swapTaskId = useCallback(
+    (oldId: string, task: TaskData) => dispatch({ type: "swapId", oldId, task }),
+    [],
+  );
+
   const reorderVisible = useCallback(
     (tasks: TaskData[]) => dispatch({ type: "reorder", tasks }),
     [],
   );
 
-  return { tasks, toggleTask, addTask, replaceTask, reorderVisible };
+  return { tasks, toggleTask, addTask, replaceTask, swapTaskId, reorderVisible };
 }

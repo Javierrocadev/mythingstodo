@@ -25,7 +25,7 @@ export async function createTask(data: {
 
   const order = await taskRepository.getNextOrder(session.user.id);
 
-  await taskRepository.create(session.user.id, {
+  const created = await taskRepository.create(session.user.id, {
     title: data.title,
     urgency: data.urgency,
     emotionalType: data.emotionalType,
@@ -36,6 +36,8 @@ export async function createTask(data: {
 
   revalidatePath("/tasks");
   revalidatePath("/home");
+
+  return created.id;
 }
 
 export async function updateTask(id: string, data: {
@@ -75,12 +77,13 @@ export async function completeTask(id: string) {
     completedAt: new Date(),
   });
 
-  const coinsEarned = 10;
-  const xpEarned = task.urgency === "NOW" ? 30 : task.urgency === "TODAY" ? 20 : 10;
-
-  await gamificationRepository.addCoins(session.user.id, coinsEarned);
-  await gamificationRepository.addXp(session.user.id, xpEarned);
   await gamificationRepository.updateDailyProgress(session.user.id, 1);
+
+  const updatedState = await gamificationRepository.incrementTotalCompleted(session.user.id);
+  const milestoneCoins = await gamificationRepository.checkMilestone(
+    session.user.id,
+    updatedState.totalCompleted,
+  );
 
   const streak = await gamificationRepository.findStreak(session.user.id);
   const today = new Date();
@@ -91,8 +94,10 @@ export async function completeTask(id: string) {
     const diffDays = Math.floor(
       (today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
     );
-    if (diffDays === 0 || diffDays === 1) {
+    if (diffDays === 1) {
       newCurrent = streak.currentStreak + 1;
+    } else if (diffDays === 0) {
+      newCurrent = streak.currentStreak;
     }
   }
 
@@ -111,16 +116,10 @@ export async function completeTask(id: string) {
   const mood = calculateMood(newCurrent, gState.dailyProgress);
   await petRepository.updateMood(session.user.id, moodToPrisma(mood));
 
-  await gamificationRepository.createRewardLog(
-    session.user.id,
-    coinsEarned,
-    `completed_task:${id}`,
-  );
-
   revalidatePath("/tasks");
   revalidatePath("/home");
 
-  return { coinsEarned, xpEarned };
+  return { milestoneCoins };
 }
 
 export async function reorderTasks(orderedIds: string[]) {

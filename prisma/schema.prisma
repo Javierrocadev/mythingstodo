@@ -157,8 +157,9 @@ model GamificationState {
   level Int @default(1)
 
   dailyProgress Int @default(0)
-  // resetea la barra de progreso diaria (medianoche / nuevo día de uso)
   lastActivityDate DateTime?
+  lastRewardDate DateTime?
+  totalCompleted Int @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
