@@ -5,6 +5,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "MyThingsToDo",
   description: "Gestión de tareas con mascota virtual y gamificación",
+  icons: { icon: "/icon.svg" },
 };
 
 export default function RootLayout({

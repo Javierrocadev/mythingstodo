@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useTransition } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -15,7 +16,9 @@ import {
 import { snapCenterToCursor } from "@dnd-kit/modifiers";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { TaskCard } from "./TaskCard";
-import { completeTask, updateTask } from "@/lib/actions/task.actions";
+import { NewTaskForm } from "./NewTaskForm";
+import { FloatingAddButton } from "./FloatingAddButton";
+import { completeTask, updateTask, createTask } from "@/lib/actions/task.actions";
 
 interface CalendarTask {
   id: string;
@@ -68,6 +71,7 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
   const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date());
   const [tasks, setTasks] = useState(initialTasks);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [, startTransition] = useTransition();
 
   const activeTask = useMemo(
@@ -131,6 +135,42 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
     });
   }, []);
 
+  const handleSave = useCallback((data: {
+    title: string;
+    urgency: "NOW" | "TODAY" | "MARGIN";
+    emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
+    deadline?: string;
+    estimatedMinutes?: number;
+  }) => {
+    startTransition(async () => {
+      const tempId = `temp-${Date.now()}`;
+      setTasks((prev) => [
+        ...prev,
+        {
+          id: tempId,
+          title: data.title,
+          urgency: data.urgency,
+          emotionalType: data.emotionalType,
+          estimatedMinutes: data.estimatedMinutes ?? null,
+          status: "TODO",
+        },
+      ]);
+      const realId = await createTask({
+        title: data.title,
+        urgency: data.urgency,
+        emotionalType: data.emotionalType,
+        estimatedMinutes: data.estimatedMinutes ?? null,
+        deadline: data.deadline ? new Date(data.deadline) : null,
+      });
+      if (realId) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === tempId ? { ...t, id: realId } : t)),
+        );
+      }
+    });
+    setShowForm(false);
+  }, []);
+
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
       <div className="flex flex-col gap-6 overflow-hidden py-4 md:grid md:grid-cols-2 md:gap-8">
@@ -153,6 +193,28 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
         />
 
         <div className="flex flex-col gap-6 overflow-hidden md:max-h-[500px] md:overflow-y-auto">
+          <AnimatePresence mode="wait">
+            {showForm && (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: -16, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                <div className="rounded-xl border border-border bg-background p-4 shadow-sm">
+                  <h3 className="font-heading mb-4 text-base font-semibold">
+                    Nueva tarea
+                  </h3>
+                  <NewTaskForm
+                    onSave={handleSave}
+                    onCancel={() => setShowForm(false)}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div>
             <h3 className="font-heading mb-3 text-base font-semibold">
               {selectedDay
@@ -189,6 +251,8 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
           )}
         </div>
       </div>
+
+      {!showForm && <FloatingAddButton onClick={() => setShowForm(true)} />}
 
       <DragOverlay dropAnimation={null} modifiers={[snapCenterToCursor]}>
         {activeTask ? (
