@@ -23,6 +23,7 @@ interface SortableTask {
   emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
   status: "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED";
   estimatedMinutes?: number | null;
+  deadline?: string | null;
 }
 
 interface DragListProps {

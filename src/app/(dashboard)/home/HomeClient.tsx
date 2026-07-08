@@ -16,6 +16,7 @@ interface TaskData {
   emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
   status: "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED";
   estimatedMinutes: number | null;
+  deadline?: string | null;
   completedAt?: string | null;
 }
 
@@ -54,7 +55,6 @@ export function HomeClient({
   const completedToday = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr)).length;
   const activeTask = tasks.find((t) => t.status !== "DONE") ?? null;
   const pendingTasks = tasks.filter((t) => t.status !== "DONE" && t.id !== activeTask?.id);
-  const doneTasks = tasks.filter((t) => t.status === "DONE");
 
   useEffect(() => {
     if (dailyReward) {
@@ -132,18 +132,7 @@ export function HomeClient({
         )}
       </section>
 
-      {doneTasks.length > 0 && (
-        <details className="group">
-          <summary className="text-muted-foreground cursor-pointer py-1 text-xs font-medium">
-            Completadas ({doneTasks.length})
-          </summary>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {doneTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onComplete={handleComplete} />
-            ))}
-          </div>
-        </details>
-      )}
+
     </div>
   );
 }

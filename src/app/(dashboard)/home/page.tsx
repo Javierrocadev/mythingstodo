@@ -42,6 +42,7 @@ export default async function HomePage() {
         emotionalType: t.emotionalType as "SATISFYING" | "NORMAL" | "BORING" | "DRAINING",
         status: t.status as "TODO" | "IN_PROGRESS" | "DONE" | "PAUSED",
         estimatedMinutes: t.estimatedMinutes,
+        deadline: t.deadline?.toISOString() ?? null,
         completedAt: t.completedAt?.toISOString() ?? null,
       }))}
       petMood={(pet?.currentMood ?? "NEUTRAL") as "HAPPY" | "NEUTRAL" | "SAD"}

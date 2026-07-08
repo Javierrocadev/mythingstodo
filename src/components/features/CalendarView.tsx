@@ -41,6 +41,11 @@ function DraggableTaskCard({ task, isDragging }: { task: CalendarTask; isDraggin
       data: { type: "task", task },
     });
 
+  const cardTask = {
+    ...task,
+    deadline: task.deadline?.toISOString() ?? null,
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -48,7 +53,7 @@ function DraggableTaskCard({ task, isDragging }: { task: CalendarTask; isDraggin
       {...attributes}
       className={isDragging ? "opacity-30" : ""}
     >
-      <TaskCard task={task} />
+      <TaskCard task={cardTask} />
     </div>
   );
 }
