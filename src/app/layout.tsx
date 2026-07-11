@@ -22,8 +22,11 @@ export default function RootLayout({
           toastOptions={{
             style: {
               background: "var(--background)",
-              border: "1px solid var(--border)",
+              border: "0",
               color: "var(--foreground)",
+              borderRadius: "var(--radius)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+              padding: "14px 18px",
             },
           }}
         />

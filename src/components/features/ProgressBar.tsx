@@ -29,7 +29,10 @@ function getTodayStr() {
 export function ProgressBar({ tasks }: ProgressBarProps) {
   const todayStr = getTodayStr();
   const completedTodayList = tasks.filter((t) => t.done && t.completedAt?.startsWith(todayStr));
-  const completedTodayWeight = completedTodayList.reduce((s, t) => s + URGENCY_WEIGHT[t.urgency], 0);
+  const completedTodayWeight = completedTodayList.reduce(
+    (s, t) => s + URGENCY_WEIGHT[t.urgency],
+    0,
+  );
   const pendingTasks = tasks.filter((t) => !t.done);
   const pendingWeight = pendingTasks.reduce((s, t) => s + URGENCY_WEIGHT[t.urgency], 0);
   const totalWeight = completedTodayWeight + pendingWeight;
@@ -73,7 +76,11 @@ export function ProgressBar({ tasks }: ProgressBarProps) {
                 exit={{ width: 0, opacity: 0 }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
                 className={`absolute top-0 h-full ${blockColor[b.urgency]}`}
-                style={{ opacity: 0.35, minWidth: 2, borderRight: "2px solid var(--color-background)" }}
+                style={{
+                  opacity: 0.35,
+                  minWidth: 2,
+                  borderRight: "2px solid var(--color-background)",
+                }}
               />
             ))}
           </AnimatePresence>
@@ -83,10 +90,14 @@ export function ProgressBar({ tasks }: ProgressBarProps) {
         <motion.div
           className="absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-md ring-2 ring-amber-300"
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ left: `calc(${percentage}% - 20px)`, opacity: percentage > 0 ? 1 : 0, scale: percentage > 0 ? 1 : 0 }}
+          animate={{
+            left: `calc(${percentage}% - 20px)`,
+            opacity: percentage > 0 ? 1 : 0,
+            scale: percentage > 0 ? 1 : 0,
+          }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          <span className="text-sm">🐱</span>
+          <span className="text-sm"></span>
         </motion.div>
       </div>
 

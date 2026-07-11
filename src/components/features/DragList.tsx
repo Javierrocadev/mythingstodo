@@ -32,6 +32,7 @@ interface DragListProps {
   onComplete: (id: string) => void;
   onEdit: (id: string) => void;
   completingIds?: Set<string>;
+  savingIds?: Set<string>;
 }
 
 function SortableTaskCard({
@@ -89,12 +90,32 @@ function SortableTaskCard({
   );
 }
 
+function SkeletonTaskCard() {
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex items-center px-1">
+        <div className="h-5 w-5 shrink-0" />
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-border/50">
+          <div className="h-6 w-6 shrink-0 rounded-full bg-muted animate-pulse" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-1/3 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DragList({
   tasks,
   onReorder,
   onComplete,
   onEdit,
   completingIds = new Set(),
+  savingIds = new Set(),
 }: DragListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -129,6 +150,9 @@ export function DragList({
               onEdit={onEdit}
               isCompleting={completingIds.has(task.id)}
             />
+          ))}
+          {Array.from(savingIds).map((id) => (
+            <SkeletonTaskCard key={id} />
           ))}
         </div>
       </SortableContext>

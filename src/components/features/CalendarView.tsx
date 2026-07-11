@@ -77,6 +77,7 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
 
   const activeTask = useMemo(
@@ -147,38 +148,47 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
     deadline?: string;
     estimatedMinutes?: number;
   }) => {
-    startTransition(async () => {
-      const tempId = `temp-${Date.now()}`;
-      setTasks((prev) => [
-        ...prev,
-        {
-          id: tempId,
-          title: data.title,
-          urgency: data.urgency,
-          emotionalType: data.emotionalType,
-          estimatedMinutes: data.estimatedMinutes ?? null,
-          status: "TODO",
-        },
-      ]);
-      const realId = await createTask({
-        title: data.title,
-        urgency: data.urgency,
-        emotionalType: data.emotionalType,
-        estimatedMinutes: data.estimatedMinutes ?? null,
-        deadline: data.deadline ? new Date(data.deadline) : null,
-      });
-      if (realId) {
-        setTasks((prev) =>
-          prev.map((t) => (t.id === tempId ? { ...t, id: realId } : t)),
-        );
-      }
-    });
+    const tempId = `temp-${Date.now()}`;
+    const savedAt = Date.now();
+    setSavingIds((prev) => new Set(prev).add(tempId));
     setShowForm(false);
+
+    createTask({
+      title: data.title,
+      urgency: data.urgency,
+      emotionalType: data.emotionalType,
+      estimatedMinutes: data.estimatedMinutes ?? null,
+      deadline: data.deadline ? new Date(data.deadline) : null,
+    }).then((realId) => {
+      const elapsed = Date.now() - savedAt;
+      const remaining = Math.max(0, 500 - elapsed);
+      setTimeout(() => {
+        setSavingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(tempId);
+          return next;
+        });
+        if (realId) {
+          setTasks((prev) => [
+            ...prev,
+            {
+              id: realId,
+              title: data.title,
+              urgency: data.urgency,
+              emotionalType: data.emotionalType,
+              estimatedMinutes: data.estimatedMinutes ?? null,
+              deadline: data.deadline ? new Date(data.deadline) : undefined,
+              status: "TODO",
+            },
+          ]);
+        }
+      }, remaining);
+    });
   }, []);
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
-      <div className="flex flex-col gap-6 overflow-hidden py-4 md:grid md:grid-cols-2 md:gap-8">
+      <div className="flex flex-col gap-6 overflow-hidden py-4 md:grid md:grid-cols-2 md:gap-8 md:min-h-[calc(100dvh-12rem)]">
         <Calendar
           mode="single"
           selected={selectedDay}
@@ -197,7 +207,7 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
           className="w-full [--cell-size:--spacing(8)] md:[--cell-size:--spacing(12)]"
         />
 
-        <div className="flex flex-col gap-6 overflow-hidden md:max-h-[500px] md:overflow-y-auto">
+        <div className="flex flex-col gap-6 overflow-hidden min-h-0 md:overflow-y-auto">
           <AnimatePresence mode="wait">
             {showForm && (
               <motion.div
@@ -252,6 +262,25 @@ export function CalendarView({ initialTasks }: CalendarViewProps) {
                   <DraggableTaskCard key={task.id} task={task} isDragging={activeId === task.id} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {savingIds.size > 0 && (
+            <div className="flex flex-col gap-2">
+              {Array.from(savingIds).map((id) => (
+                <div key={id} className="flex items-center gap-1">
+                  <div className="flex h-10 w-[34px] shrink-0 items-center justify-center" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-border/50">
+                      <div className="h-6 w-6 shrink-0 rounded-full bg-muted animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+                        <div className="h-3 w-1/3 rounded bg-muted animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

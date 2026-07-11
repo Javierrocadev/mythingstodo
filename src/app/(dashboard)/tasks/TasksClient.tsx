@@ -50,6 +50,7 @@ export function TasksClient({
   const [isOrdering, setIsOrdering] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
   const [completingIds, setCompletingIds] = useState<Set<string>>(new Set());
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
   const { isDirty, setIsDirty, saveOrder } = useDragOrder();
   const enrichedRef = useRef<Map<string, { emotionalType: string; estimatedMinutes: number | null }>>(new Map());
@@ -103,8 +104,8 @@ export function TasksClient({
     deadline?: string;
     estimatedMinutes?: number;
   }) => {
-    startTransition(() => {
-      if (editingId) {
+    if (editingId) {
+      startTransition(() => {
         replaceTask({
           id: editingId,
           title: data.title,
@@ -121,38 +122,45 @@ export function TasksClient({
           estimatedMinutes: data.estimatedMinutes ?? null,
           deadline: data.deadline ? new Date(data.deadline) : null,
         });
-      } else {
-        const tempId = `temp-${Date.now()}`;
-        addTask({
-          id: tempId,
-          title: data.title,
-          urgency: data.urgency,
-          emotionalType: data.emotionalType,
-          estimatedMinutes: data.estimatedMinutes ?? null,
-          deadline: data.deadline ?? null,
-          status: "TODO",
-        });
-        createTask({
-          title: data.title,
-          urgency: data.urgency,
-          emotionalType: data.emotionalType,
-          estimatedMinutes: data.estimatedMinutes ?? null,
-          deadline: data.deadline ? new Date(data.deadline) : null,
-        }).then((realId) => {
-          if (realId) swapTaskId(tempId, {
-            id: realId,
-            title: data.title,
-            urgency: data.urgency,
-            emotionalType: data.emotionalType,
-            estimatedMinutes: data.estimatedMinutes ?? null,
-            deadline: data.deadline ?? null,
-            status: "TODO",
+      });
+      setShowForm(false);
+      setEditingId(null);
+    } else {
+      const tempId = `temp-${Date.now()}`;
+      const savedAt = Date.now();
+      setSavingIds((prev) => new Set(prev).add(tempId));
+      setShowForm(false);
+      setEditingId(null);
+
+      createTask({
+        title: data.title,
+        urgency: data.urgency,
+        emotionalType: data.emotionalType,
+        estimatedMinutes: data.estimatedMinutes ?? null,
+        deadline: data.deadline ? new Date(data.deadline) : null,
+      }).then((realId) => {
+        const elapsed = Date.now() - savedAt;
+        const remaining = Math.max(0, 500 - elapsed);
+        setTimeout(() => {
+          setSavingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(tempId);
+            return next;
           });
-        });
-      }
-    });
-    setShowForm(false);
-    setEditingId(null);
+          if (realId) {
+            addTask({
+              id: realId,
+              title: data.title,
+              urgency: data.urgency,
+              emotionalType: data.emotionalType,
+              estimatedMinutes: data.estimatedMinutes ?? null,
+              deadline: data.deadline ?? null,
+              status: "TODO",
+            });
+          }
+        }, remaining);
+      });
+    }
   }, [editingId, addTask, replaceTask]);
 
   const handleAiOrder = useCallback(() => {
@@ -267,6 +275,7 @@ export function TasksClient({
               onComplete={handleComplete}
               onEdit={handleEdit}
               completingIds={completingIds}
+              savingIds={savingIds}
             />
             <div className="mt-8 flex justify-center gap-3">
               {todoTasks.length >= 2 && (
