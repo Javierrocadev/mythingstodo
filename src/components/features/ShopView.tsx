@@ -179,41 +179,41 @@ export function ShopView({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>¿Comprar {pendingPurchase?.name}?</DialogTitle>
-            <DialogDescription>
-              {pendingPurchase && (
-                <div className="flex flex-col items-center gap-4 pt-2">
-                  <div className="flex h-40 w-full items-center justify-center rounded-xl bg-muted/30">
-                    {(() => {
-                      const p = pendingPurchase;
-                      const accName = p.category === "ACCESSORY"
-                        ? p.imageUrl.split("/")[2]?.replace(".json", "")
-                        : undefined;
-                      const effName = p.category === "ANIMATION"
-                        ? p.imageUrl.split("/")[2]?.replace(".json", "")
-                        : undefined;
-                      return p.category === "PET" && p.petType ? (
-                        <CatLottie mood="NEUTRAL" petType={p.petType} className="h-32 w-auto" />
-                      ) : p.category === "ACCESSORY" && accName ? (
-                        <CatLottie mood="NEUTRAL" petType={selectedPetType} accessories={[accName]} className="h-32 w-auto" />
-                      ) : p.category === "DECORATION" ? (
-                        <CatLottie mood="NEUTRAL" petType={selectedPetType} className="h-32 w-auto" />
-                      ) : p.category === "ANIMATION" && effName ? (
-                        <div className="relative">
-                          <CatLottie mood="NEUTRAL" petType={selectedPetType} className="h-32 w-auto" />
-                          <EffectOverlay effect={effName} preview />
-                        </div>
-                      ) : (
-                        <img src={p.imageUrl} alt={p.name} className="h-32 w-auto object-contain" />
-                      );
-                    })()}
-                  </div>
-                  <span className="flex items-center gap-1.5 text-lg font-semibold text-amber-800">
-                    🪙 {pendingPurchase.price}
-                  </span>
-                </div>
-              )}
-            </DialogDescription>
           </DialogHeader>
+          {pendingPurchase && (
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex h-40 w-full items-center justify-center rounded-xl bg-muted/30">
+                {(() => {
+                  const p = pendingPurchase;
+                  const accName = p.category === "ACCESSORY"
+                    ? p.imageUrl.split("/")[2]?.replace(".json", "")
+                    : undefined;
+                  const effName = p.category === "ANIMATION"
+                    ? p.imageUrl.split("/")[2]?.replace(".json", "")
+                    : undefined;
+                  return p.category === "PET" && p.petType ? (
+                    <CatLottie mood="NEUTRAL" petType={p.petType} className="h-32 w-auto" />
+                  ) : p.category === "ACCESSORY" && accName ? (
+                    <CatLottie mood="NEUTRAL" petType={selectedPetType} accessories={[accName]} className="h-32 w-auto" />
+                  ) : p.category === "DECORATION" ? (
+                    <CatLottie mood="NEUTRAL" petType={selectedPetType} className="h-32 w-auto" />
+                  ) : p.category === "ANIMATION" && effName ? (
+                    <div className="relative">
+                      <CatLottie mood="NEUTRAL" petType={selectedPetType} className="h-32 w-auto" />
+                      <EffectOverlay effect={effName} preview />
+                    </div>
+                  ) : (
+                    <img src={p.imageUrl} alt={p.name} className="h-32 w-auto object-contain" />
+                  );
+                })()}
+              </div>
+              <DialogDescription className="text-center">
+                <span className="flex items-center justify-center gap-1.5 text-lg font-semibold text-amber-800">
+                  🪙 {pendingPurchase.price}
+                </span>
+              </DialogDescription>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setPendingPurchase(null)}>
               Cancelar
