@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, useCallback, useRef } from "react";
+import { useState, useTransition, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 
@@ -21,12 +21,6 @@ import { useOptimisticTasks, type TaskData } from "@/hooks/useOptimisticTask";
 import { useDragOrder } from "@/hooks/useDragOrder";
 import { createTask, completeTask, updateTask, aiSuggestOrder, reorderAndEnrich } from "@/lib/actions/task.actions";
 
-interface DailyReward {
-  coins: number;
-  xp: number;
-  count: number;
-}
-
 interface TasksClientProps {
   initialTasks: TaskData[];
   currentStreak: number;
@@ -36,7 +30,6 @@ interface TasksClientProps {
   accessories: string[];
   decoration: string | null;
   effect: string;
-  dailyReward: DailyReward | null;
   todayCompletedCount: number;
 }
 
@@ -49,7 +42,6 @@ export function TasksClient({
   accessories,
   decoration,
   effect,
-  dailyReward,
   todayCompletedCount,
 }: TasksClientProps) {
   const { tasks, toggleTask, addTask, replaceTask, swapTaskId, reorderVisible } = useOptimisticTasks(initialTasks);
@@ -71,20 +63,12 @@ export function TasksClient({
   const completedWeight = doneTodayTasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
   const completedCount = doneTodayTasks.length;
 
-  useEffect(() => {
-    if (dailyReward) {
-      triggerRewardToast({ type: "dailyReward", ...dailyReward });
-    }
-  }, [dailyReward]);
-
   const handleComplete = useCallback((id: string) => {
     const task = initialTasks.find((t) => t.id === id);
-    const wasDone = task?.status === "DONE";
+    if (task?.status === "DONE") return;
 
-    if (!wasDone) {
-      setCelebrating(true);
-      setTimeout(() => setCelebrating(false), 1500);
-    }
+    setCelebrating(true);
+    setTimeout(() => setCelebrating(false), 1500);
 
     startTransition(async () => {
       toggleTask(id);

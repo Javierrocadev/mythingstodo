@@ -77,6 +77,11 @@ export const gamificationRepository = {
 
   async checkMilestone(userId: string, totalCompleted: number) {
     if (totalCompleted > 0 && totalCompleted % 50 === 0) {
+      const alreadyAwarded = await prisma.rewardLog.findFirst({
+        where: { userId, reason: `milestone:${totalCompleted}` },
+      });
+      if (alreadyAwarded) return null;
+
       await prisma.gamificationState.update({
         where: { userId },
         data: { coins: { increment: 50 } },
@@ -89,69 +94,60 @@ export const gamificationRepository = {
     return null;
   },
 
-  async getStartOfToday(): Promise<Date> {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  },
-
-  async getEndOfYesterday(): Promise<Date> {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - 1);
-    d.setHours(23, 59, 59, 999);
-    return d;
-  },
-
   async claimDailyReward(userId: string) {
-    const state = await prisma.gamificationState.findUnique({ where: { userId } });
-    if (!state) return null;
+    return prisma.$transaction(async (tx) => {
+      const state = await tx.gamificationState.findUnique({ where: { userId } });
+      if (!state) return null;
 
-    const today = await this.getStartOfToday();
-    const lastReward = state.lastRewardDate;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const lastReward = state.lastRewardDate;
 
-    if (lastReward) {
-      const lastDay = new Date(lastReward);
-      lastDay.setHours(0, 0, 0, 0);
-      if (lastDay.getTime() >= today.getTime()) return null;
-    }
+      if (lastReward) {
+        const lastDay = new Date(lastReward);
+        lastDay.setHours(0, 0, 0, 0);
+        if (lastDay.getTime() >= today.getTime()) return null;
+      }
 
-    const yesterday = await this.getEndOfYesterday();
-    const periodStart = lastReward ?? new Date(0);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(23, 59, 59, 999);
+      const periodStart = lastReward ?? new Date(0);
 
-    const tasksCompleted = await prisma.task.findMany({
-      where: {
-        userId,
-        status: "DONE",
-        completedAt: { gte: periodStart, lte: yesterday },
-      },
+      const tasksCompleted = await tx.task.findMany({
+        where: {
+          userId,
+          status: "DONE",
+          completedAt: { gte: periodStart, lte: yesterday },
+        },
+      });
+
+      await tx.gamificationState.update({
+        where: { userId },
+        data: { lastRewardDate: today },
+      });
+
+      if (tasksCompleted.length === 0) return null;
+
+      const coins = tasksCompleted.length * 10;
+      const xp = tasksCompleted.reduce((sum, t) => {
+        return sum + (t.urgency === "NOW" ? 30 : t.urgency === "TODAY" ? 20 : 10);
+      }, 0);
+
+      await tx.gamificationState.update({
+        where: { userId },
+        data: {
+          coins: { increment: coins },
+          xp: { increment: xp },
+        },
+      });
+
+      const dateStr = periodStart.toISOString().slice(0, 10);
+      await tx.rewardLog.create({
+        data: { userId, amount: coins, reason: `daily_reward:${dateStr}` },
+      });
+
+      return { coins, xp, count: tasksCompleted.length };
     });
-
-    await prisma.gamificationState.update({
-      where: { userId },
-      data: { lastRewardDate: today },
-    });
-
-    if (tasksCompleted.length === 0) return null;
-
-    const coins = tasksCompleted.length * 10;
-    const xp = tasksCompleted.reduce((sum, t) => {
-      return sum + (t.urgency === "NOW" ? 30 : t.urgency === "TODAY" ? 20 : 10);
-    }, 0);
-
-    await prisma.gamificationState.update({
-      where: { userId },
-      data: {
-        coins: { increment: coins },
-        xp: { increment: xp },
-      },
-    });
-
-    const dateStr = periodStart.toISOString().slice(0, 10);
-    await prisma.rewardLog.create({
-      data: { userId, amount: coins, reason: `daily_reward:${dateStr}` },
-    });
-
-    return { coins, xp, count: tasksCompleted.length };
   },
 };

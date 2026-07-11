@@ -71,6 +71,7 @@ export async function completeTask(id: string) {
 
   const task = await taskRepository.findById(id);
   if (!task || task.userId !== session.user.id) throw new Error("Tarea no encontrada");
+  if (task.status === "DONE") return { milestoneCoins: null };
 
   await taskRepository.update(id, {
     status: "DONE",
@@ -88,7 +89,7 @@ export async function completeTask(id: string) {
   const streak = await gamificationRepository.findStreak(session.user.id);
   const today = new Date();
   const lastDate = streak.lastCompletedDate;
-  let newCurrent = 1;
+  let newCurrent = 0;
 
   if (lastDate) {
     const diffDays = Math.floor(

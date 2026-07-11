@@ -98,10 +98,9 @@ export function PetWidget({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute -top-12 left-1/2 w-56 -translate-x-1/2 rounded-2xl bg-white px-4 py-2.5 text-center text-sm shadow-md ring-1 ring-border/50"
+            className="absolute -top-12 left-1/2 z-20 w-56 -translate-x-1/2 rounded-2xl bg-white px-4 py-2.5 text-center text-sm shadow-md ring-1 ring-border/50"
           >
             <p className="text-muted-foreground">{bubbleText}</p>
-            <div className="absolute left-1/2 top-full -translate-x-1/2 border-8 border-transparent border-t-white" />
           </motion.div>
         </AnimatePresence>
 

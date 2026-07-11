@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, useCallback } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { PetWidget } from "@/components/features/PetWidget";
 import { TaskCard } from "@/components/features/TaskCard";
 import { ProgressBar } from "@/components/features/ProgressBar";
@@ -20,12 +20,6 @@ interface TaskData {
   completedAt?: string | null;
 }
 
-interface DailyReward {
-  coins: number;
-  xp: number;
-  count: number;
-}
-
 interface HomeClientProps {
   tasks: TaskData[];
   petMood: "HAPPY" | "NEUTRAL" | "SAD";
@@ -33,7 +27,6 @@ interface HomeClientProps {
   accessories: string[];
   decoration: string | null;
   effect: string;
-  dailyReward: DailyReward | null;
   todayCompletedCount: number;
 }
 
@@ -44,7 +37,6 @@ export function HomeClient({
   accessories,
   decoration,
   effect,
-  dailyReward,
   todayCompletedCount,
 }: HomeClientProps) {
   const { tasks, toggleTask } = useOptimisticTasks(initialTasks);
@@ -55,12 +47,6 @@ export function HomeClient({
   const completedToday = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr)).length;
   const activeTask = tasks.find((t) => t.status !== "DONE") ?? null;
   const pendingTasks = tasks.filter((t) => t.status !== "DONE" && t.id !== activeTask?.id);
-
-  useEffect(() => {
-    if (dailyReward) {
-      triggerRewardToast({ type: "dailyReward", ...dailyReward });
-    }
-  }, [dailyReward]);
 
   const handleComplete = useCallback(
     (id: string) => {

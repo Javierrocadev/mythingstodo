@@ -16,7 +16,20 @@ export default async function TasksPage() {
     petRepository.findActiveSkin(session.user.id),
   ]);
 
-  const dailyReward = await gamificationRepository.claimDailyReward(session.user.id);
+  const effectiveCurrentStreak = (() => {
+    if (!streak.lastCompletedDate) return 0;
+    const today = new Date();
+    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const lastDate = new Date(
+      streak.lastCompletedDate.getFullYear(),
+      streak.lastCompletedDate.getMonth(),
+      streak.lastCompletedDate.getDate(),
+    );
+    const diffDays = Math.floor(
+      (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    return diffDays >= 2 ? 0 : streak.currentStreak;
+  })();
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayCompletedCount = tasks.filter(
@@ -46,14 +59,13 @@ export default async function TasksPage() {
         deadline: t.deadline?.toISOString() ?? null,
         completedAt: t.completedAt?.toISOString() ?? null,
       }))}
-      currentStreak={streak.currentStreak}
+      currentStreak={effectiveCurrentStreak}
       longestStreak={streak.longestStreak}
       petMood={(pet?.currentMood ?? "NEUTRAL") as "HAPPY" | "NEUTRAL" | "SAD"}
       petType={activeSkin?.shopItem.imageUrl?.split("/")[2] ?? "orange-cat"}
       accessories={equippedAccessories.map((inv) => inv.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "").filter(Boolean)}
       decoration={equippedDecoration?.shopItem.imageUrl ?? null}
       effect={equippedAnimation?.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "confetti"}
-      dailyReward={dailyReward}
       todayCompletedCount={todayCompletedCount}
     />
   );

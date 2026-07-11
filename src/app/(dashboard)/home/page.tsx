@@ -2,7 +2,6 @@ import { auth } from "@/lib/auth/auth.config";
 import { prisma } from "@/lib/db/prisma";
 import { taskRepository } from "@/lib/db/task.repository";
 import { petRepository } from "@/lib/db/pet.repository";
-import { gamificationRepository } from "@/lib/db/gamification.repository";
 import { HomeClient } from "./HomeClient";
 
 export default async function HomePage() {
@@ -14,8 +13,6 @@ export default async function HomePage() {
     petRepository.findByUser(session.user.id),
     petRepository.findActiveSkin(session.user.id),
   ]);
-
-  const dailyReward = await gamificationRepository.claimDailyReward(session.user.id);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayCompletedCount = tasks.filter(
@@ -50,7 +47,6 @@ export default async function HomePage() {
       accessories={equippedAccessories.map((inv) => inv.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "").filter(Boolean)}
       decoration={equippedDecoration?.shopItem.imageUrl ?? null}
       effect={equippedAnimation?.shopItem.imageUrl.split("/")[2]?.replace(".json", "") ?? "confetti"}
-      dailyReward={dailyReward}
       todayCompletedCount={todayCompletedCount}
     />
   );
