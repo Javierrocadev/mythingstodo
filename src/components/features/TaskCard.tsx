@@ -18,6 +18,7 @@ interface TaskCardProps {
   task: Task;
   onComplete?: (id: string) => void;
   onEdit?: (id: string) => void;
+  isCompleting?: boolean;
 }
 
 const urgencyStyles: Record<Urgency, { label: string; style: string }> = {
@@ -56,7 +57,7 @@ function getDeadlineInfo(deadline: string | null): { label: string; className: s
   return { label: `En ${diffDays}d`, className: "bg-emerald-100 text-emerald-700" };
 }
 
-export function TaskCard({ task, onComplete, onEdit }: TaskCardProps) {
+export function TaskCard({ task, onComplete, onEdit, isCompleting = false }: TaskCardProps) {
   const isCompleted = task.status === "DONE";
   const urgency = urgencyStyles[task.urgency];
   const emotion = emotionalIcons[task.emotionalType];
@@ -65,18 +66,30 @@ export function TaskCard({ task, onComplete, onEdit }: TaskCardProps) {
   return (
     <div
       className={`flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-border/50 transition-all ${
-        isCompleted ? "opacity-60" : urgency.style
+        isCompleting
+          ? "opacity-70 ring-primary/30"
+          : isCompleted
+            ? "opacity-60"
+            : urgency.style
       }`}
     >
       <button
         onClick={() => onComplete?.(task.id)}
+        disabled={isCompleting}
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-          isCompleted
-            ? "border-emerald-400 bg-emerald-400 text-white"
-            : "border-muted-foreground/30 hover:border-primary"
+          isCompleting
+            ? "border-primary/50"
+            : isCompleted
+              ? "border-emerald-400 bg-emerald-400 text-white"
+              : "border-muted-foreground/30 hover:border-primary"
         }`}
       >
-        {isCompleted && (
+        {isCompleting ? (
+          <svg className="h-3.5 w-3.5 animate-spin text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+        ) : isCompleted ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -89,23 +102,31 @@ export function TaskCard({ task, onComplete, onEdit }: TaskCardProps) {
               clipRule="evenodd"
             />
           </svg>
-        )}
+        ) : null}
       </button>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p
             className={`truncate text-sm font-medium ${
-              isCompleted ? "line-through text-muted-foreground" : ""
+              isCompleting
+                ? "italic text-muted-foreground"
+                : isCompleted
+                  ? "line-through text-muted-foreground"
+                  : ""
             }`}
           >
-            {task.title}
+            {isCompleting ? "Completando..." : task.title}
           </p>
-          {!isCompleted && task.urgency === "NOW" && (
+          {isCompleting ? (
+            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary animate-pulse">
+              Guardando
+            </span>
+          ) : !isCompleted && task.urgency === "NOW" ? (
             <span className="shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-600 uppercase">
               Urgente
             </span>
-          )}
+          ) : null}
           {deadlineInfo && (
             <span className={`ml-auto shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold ${deadlineInfo.className}`}>
               {deadlineInfo.label}
@@ -126,7 +147,7 @@ export function TaskCard({ task, onComplete, onEdit }: TaskCardProps) {
         </div>
       </div>
 
-      {onEdit && !isCompleted ? (
+      {onEdit && !isCompleted && !isCompleting ? (
         <button
           onClick={() => onEdit(task.id)}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground"

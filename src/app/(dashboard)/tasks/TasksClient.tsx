@@ -49,6 +49,7 @@ export function TasksClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isOrdering, setIsOrdering] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [completingIds, setCompletingIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
   const { isDirty, setIsDirty, saveOrder } = useDragOrder();
   const enrichedRef = useRef<Map<string, { emotionalType: string; estimatedMinutes: number | null }>>(new Map());
@@ -69,10 +70,16 @@ export function TasksClient({
 
     setCelebrating(true);
     setTimeout(() => setCelebrating(false), 1500);
+    setCompletingIds((prev) => new Set(prev).add(id));
 
     startTransition(async () => {
-      toggleTask(id);
       const result = await completeTask(id);
+      setCompletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      toggleTask(id);
       if (result?.milestoneCoins) {
         triggerRewardToast({ type: "milestone", coins: result.milestoneCoins });
       }
@@ -259,6 +266,7 @@ export function TasksClient({
               onReorder={handleReorder}
               onComplete={handleComplete}
               onEdit={handleEdit}
+              completingIds={completingIds}
             />
             <div className="mt-8 flex justify-center gap-3">
               {todoTasks.length >= 2 && (

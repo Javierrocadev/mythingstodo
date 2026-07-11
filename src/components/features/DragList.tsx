@@ -31,16 +31,19 @@ interface DragListProps {
   onReorder: (tasks: SortableTask[]) => void;
   onComplete: (id: string) => void;
   onEdit: (id: string) => void;
+  completingIds?: Set<string>;
 }
 
 function SortableTaskCard({
   task,
   onComplete,
   onEdit,
+  isCompleting,
 }: {
   task: SortableTask;
   onComplete: (id: string) => void;
   onEdit: (id: string) => void;
+  isCompleting: boolean;
 }) {
   const {
     attributes,
@@ -79,7 +82,7 @@ function SortableTaskCard({
           </svg>
         </button>
         <div className="flex-1">
-          <TaskCard task={task} onComplete={onComplete} onEdit={onEdit} />
+          <TaskCard task={task} onComplete={onComplete} onEdit={onEdit} isCompleting={isCompleting} />
         </div>
       </div>
     </div>
@@ -91,6 +94,7 @@ export function DragList({
   onReorder,
   onComplete,
   onEdit,
+  completingIds = new Set(),
 }: DragListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -123,6 +127,7 @@ export function DragList({
               task={task}
               onComplete={onComplete}
               onEdit={onEdit}
+              isCompleting={completingIds.has(task.id)}
             />
           ))}
         </div>

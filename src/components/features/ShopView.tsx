@@ -7,6 +7,15 @@ import { CatLottie } from "./CatLottie";
 import { EffectOverlay } from "./EffectOverlay";
 import { equipItem, purchaseItem } from "@/lib/actions/gamification.actions";
 import { canEquip } from "@/lib/core/gamification/equip-rules";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ShopItemData {
   id: string;
@@ -58,6 +67,7 @@ export function ShopView({
   const [equippedIds, setEquippedIds] = useState(initialEquippedIds);
   const [selectedPetType, setSelectedPetType] = useState(initialPetType);
   const [, startTransition] = useTransition();
+  const [pendingPurchase, setPendingPurchase] = useState<ShopItemData | null>(null);
 
   const filteredItems = useMemo(
     () => items.filter((item) => item.category === activeTab),
@@ -92,27 +102,7 @@ export function ShopView({
         }
       }
     } else if (!ownedIds.has(item.id)) {
-      startTransition(async () => {
-        try {
-          await purchaseItem(item.id);
-          await equipItem(item.id);
-          setEquippedIds((prev) => {
-            const next = new Set(prev);
-            if (item.category === "PET") {
-              for (const id of next) {
-                const existing = items.find((i) => i.id === id);
-                if (existing?.category === "PET") next.delete(id);
-              }
-            }
-            next.add(item.id);
-            return next;
-          });
-          if (item.petType) setSelectedPetType(item.petType);
-          toast(`¡${item.name} equipado!`);
-        } catch {
-          toast("Monedas insuficientes", { description: "Sigue completando tareas" });
-        }
-      });
+      setPendingPurchase(item);
       return;
     } else if (item.category === "PET") {
       setEquippedIds((prev) => {
@@ -156,7 +146,84 @@ export function ShopView({
     });
   };
 
+  const handleConfirmPurchase = () => {
+    if (!pendingPurchase) return;
+    const item = pendingPurchase;
+    setPendingPurchase(null);
+    startTransition(async () => {
+      try {
+        await purchaseItem(item.id);
+        await equipItem(item.id);
+        setEquippedIds((prev) => {
+          const next = new Set(prev);
+          if (item.category === "PET") {
+            for (const id of next) {
+              const existing = items.find((i) => i.id === id);
+              if (existing?.category === "PET") next.delete(id);
+            }
+          }
+          next.add(item.id);
+          return next;
+        });
+        if (item.petType) setSelectedPetType(item.petType);
+        toast(`¡${item.name} equipado!`);
+      } catch {
+        toast("Monedas insuficientes", { description: "Sigue completando tareas" });
+      }
+    });
+  };
+
   return (
+    <>
+      <Dialog open={!!pendingPurchase} onOpenChange={(open) => { if (!open) setPendingPurchase(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Comprar {pendingPurchase?.name}?</DialogTitle>
+            <DialogDescription>
+              {pendingPurchase && (
+                <div className="flex flex-col items-center gap-4 pt-2">
+                  <div className="flex h-40 w-full items-center justify-center rounded-xl bg-muted/30">
+                    {(() => {
+                      const p = pendingPurchase;
+                      const accName = p.category === "ACCESSORY"
+                        ? p.imageUrl.split("/")[2]?.replace(".json", "")
+                        : undefined;
+                      const effName = p.category === "ANIMATION"
+                        ? p.imageUrl.split("/")[2]?.replace(".json", "")
+                        : undefined;
+                      return p.category === "PET" && p.petType ? (
+                        <CatLottie mood="NEUTRAL" petType={p.petType} className="h-32 w-auto" />
+                      ) : p.category === "ACCESSORY" && accName ? (
+                        <CatLottie mood="NEUTRAL" petType={selectedPetType} accessories={[accName]} className="h-32 w-auto" />
+                      ) : p.category === "DECORATION" ? (
+                        <CatLottie mood="NEUTRAL" petType={selectedPetType} className="h-32 w-auto" />
+                      ) : p.category === "ANIMATION" && effName ? (
+                        <div className="relative">
+                          <CatLottie mood="NEUTRAL" petType={selectedPetType} className="h-32 w-auto" />
+                          <EffectOverlay effect={effName} preview />
+                        </div>
+                      ) : (
+                        <img src={p.imageUrl} alt={p.name} className="h-32 w-auto object-contain" />
+                      );
+                    })()}
+                  </div>
+                  <span className="flex items-center gap-1.5 text-lg font-semibold text-amber-800">
+                    🪙 {pendingPurchase.price}
+                  </span>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingPurchase(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmPurchase}>
+              Confirmar compra
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     <div className="flex flex-col gap-6 py-4">
       <div className="flex flex-col items-center gap-3">
         <PetWidget mood={petMood} petType={selectedPetType} accessories={equippedAccessories} decoration={equippedDecoration ?? undefined} effect={equippedAnimation} />
@@ -274,5 +341,5 @@ export function ShopView({
         </div>
       )}
     </div>
-  );
+    </>)
 }
