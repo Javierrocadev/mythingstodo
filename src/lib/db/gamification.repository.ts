@@ -122,12 +122,12 @@ export const gamificationRepository = {
         },
       });
 
+      if (tasksCompleted.length === 0) return null;
+
       await tx.gamificationState.update({
         where: { userId },
         data: { lastRewardDate: today },
       });
-
-      if (tasksCompleted.length === 0) return null;
 
       const coins = tasksCompleted.length * 10;
       const xp = tasksCompleted.reduce((sum, t) => {

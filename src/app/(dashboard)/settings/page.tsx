@@ -1,6 +1,8 @@
 import { auth, signOut } from "@/lib/auth/auth.config";
 import { redirect } from "next/navigation";
 import { statsRepository } from "@/lib/db/stats.repository";
+import { WeeklyEarningsBars } from "@/components/features/WeeklyEarningsBars";
+import { TrophyMilestones } from "@/components/features/TrophyMilestones";
 
 const URGENCY_LABEL: Record<string, string> = {
   NOW: "Urgente",
@@ -22,7 +24,10 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
-  const stats = await statsRepository.getSummary(session.user.id);
+  const [stats, weeklyEarnings] = await Promise.all([
+    statsRepository.getSummary(session.user.id),
+    statsRepository.getWeeklyEarnings(session.user.id),
+  ]);
 
   return (
     <div className="flex flex-col gap-6 py-6">
@@ -111,6 +116,18 @@ export default async function SettingsPage() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* Weekly earnings */}
+      <section>
+        <h3 className="font-display mb-3 text-lg font-bold">Monedas esta semana</h3>
+        <WeeklyEarningsBars days={weeklyEarnings} />
+      </section>
+
+      {/* Milestones */}
+      <section>
+        <h3 className="font-display mb-3 text-lg font-bold">Trofeos</h3>
+        <TrophyMilestones totalCompleted={stats.totalCompleted} />
       </section>
 
       <form

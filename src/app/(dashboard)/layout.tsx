@@ -13,12 +13,13 @@ export default async function DashboardLayout({
     ? { name: session.user.name ?? null, image: session.user.image ?? null }
     : null;
 
-  const [coins, dailyReward] = session?.user?.id
-    ? await Promise.all([
-        gamificationRepository.findByUser(session.user.id).then((g) => g.coins),
-        gamificationRepository.claimDailyReward(session.user.id),
-      ])
-    : [0, null];
+  const dailyReward = session?.user?.id
+    ? await gamificationRepository.claimDailyReward(session.user.id)
+    : null;
+
+  const coins = session?.user?.id
+    ? (await gamificationRepository.findByUser(session.user.id)).coins
+    : 0;
 
   return (
     <AppShell user={user} coins={coins}>

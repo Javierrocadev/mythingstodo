@@ -119,6 +119,7 @@ export async function completeTask(id: string) {
 
   revalidatePath("/tasks");
   revalidatePath("/home");
+  revalidatePath("/settings");
 
   return { milestoneCoins };
 }
