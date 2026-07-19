@@ -156,10 +156,10 @@ export function ShopView({
         await equipItem(item.id);
         setEquippedIds((prev) => {
           const next = new Set(prev);
-          if (item.category === "PET") {
+          if (item.category === "PET" || item.category === "DECORATION") {
             for (const id of next) {
               const existing = items.find((i) => i.id === id);
-              if (existing?.category === "PET") next.delete(id);
+              if (existing?.category === item.category) next.delete(id);
             }
           }
           next.add(item.id);
@@ -182,7 +182,12 @@ export function ShopView({
           </DialogHeader>
           {pendingPurchase && (
             <div className="flex flex-col items-center gap-4">
-              <div className="flex h-40 w-full items-center justify-center rounded-xl bg-muted/30">
+              <div
+                className="flex h-40 w-full items-center justify-center rounded-xl"
+                style={pendingPurchase.category === "DECORATION" && pendingPurchase.imageUrl
+                  ? { backgroundImage: `url(${pendingPurchase.imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+                  : { backgroundColor: "hsl(var(--muted) / 0.3)" }}
+              >
                 {(() => {
                   const p = pendingPurchase;
                   const accName = p.category === "ACCESSORY"
