@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { completeOnboarding } from "@/lib/actions/onboarding.actions";
+import { CatLottie } from "@/components/features/CatLottie";
 
 const steps = [
   {
@@ -88,7 +89,7 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-dvh flex-col px-4 py-8">
       <div className="mb-2 flex items-center gap-1">
-        <img src="/pets/orange-cat/happy.svg" alt="" className="h-6 w-auto" />
+        <CatLottie mood="HAPPY" className="h-8 w-auto" />
         <span className="font-heading text-base font-bold">MyThingsToDo</span>
       </div>
 

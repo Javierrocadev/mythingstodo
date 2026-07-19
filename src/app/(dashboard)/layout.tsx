@@ -1,7 +1,9 @@
 import { auth } from "@/lib/auth/auth.config";
 import { gamificationRepository } from "@/lib/db/gamification.repository";
+import { prisma } from "@/lib/db/prisma";
 import { AppShell } from "@/components/features/AppShell";
 import { DailyRewardHandler } from "@/components/features/DailyRewardHandler";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   children,
@@ -9,9 +11,18 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  const user = session?.user
-    ? { name: session.user.name ?? null, image: session.user.image ?? null }
-    : null;
+  if (!session?.user?.id) return null;
+
+  const userRecord = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { onboardingCompleted: true },
+  });
+
+  if (userRecord && !userRecord.onboardingCompleted) {
+    redirect("/onboarding");
+  }
+
+  const user = { name: session.user.name ?? null, image: session.user.image ?? null };
 
   const dailyReward = session?.user?.id
     ? await gamificationRepository.claimDailyReward(session.user.id)

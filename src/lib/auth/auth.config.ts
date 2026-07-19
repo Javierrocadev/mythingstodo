@@ -7,6 +7,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [Google],
   callbacks: {
+    async signIn({ account }) {
+      if (account?.provider === "google") return true;
+      return false;
+    },
     session({ session, user }) {
       session.user.id = user.id;
       return session;
