@@ -106,3 +106,20 @@ export async function purchaseItem(shopItemId: string) {
 
   revalidatePath("/shop");
 }
+
+export async function unequipAllAccessories() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("No autenticado");
+
+  await prisma.inventoryItem.updateMany({
+    where: {
+      userId: session.user.id,
+      isEquipped: true,
+      shopItem: { category: "ACCESSORY" },
+    },
+    data: { isEquipped: false, equippedAt: null },
+  });
+
+  revalidatePath("/shop");
+  revalidatePath("/home");
+}

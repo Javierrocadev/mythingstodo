@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { PetWidget } from "./PetWidget";
 import { CatLottie } from "./CatLottie";
 import { EffectOverlay } from "./EffectOverlay";
-import { equipItem, purchaseItem } from "@/lib/actions/gamification.actions";
+import { equipItem, purchaseItem, unequipAllAccessories } from "@/lib/actions/gamification.actions";
 import { canEquip } from "@/lib/core/gamification/equip-rules";
 import {
   Dialog,
@@ -173,6 +173,21 @@ export function ShopView({
     });
   };
 
+  const handleClearAccessories = () => {
+    setEquippedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of next) {
+        const item = items.find((i) => i.id === id);
+        if (item?.category === "ACCESSORY") next.delete(id);
+      }
+      return next;
+    });
+
+    startTransition(() => {
+      unequipAllAccessories();
+    });
+  };
+
   return (
     <>
       <Dialog open={!!pendingPurchase} onOpenChange={(open) => { if (!open) setPendingPurchase(null); }}>
@@ -255,6 +270,39 @@ export function ShopView({
       </nav>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {activeTab === "ACCESSORY" && (
+          <button
+            type="button"
+            onClick={handleClearAccessories}
+            className={`group relative flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-center transition-all ${
+              equippedAccessories.length === 0
+                ? "border-primary bg-primary/5"
+                : "border-border bg-background hover:border-primary/30 hover:bg-muted/30"
+            }`}
+          >
+            {equippedAccessories.length === 0 && (
+              <span className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-primary-foreground shadow-sm">
+                ✓
+              </span>
+            )}
+            <div className="flex h-48 w-full items-center justify-center rounded-xl">
+              <CatLottie mood="NEUTRAL" petType={selectedPetType} className="h-44 w-auto" />
+            </div>
+            <span className="text-sm font-medium leading-tight">Ninguno</span>
+            <div className="mt-auto flex w-full flex-col items-center gap-1.5">
+              <span className="text-muted-foreground text-xs">—</span>
+              {equippedAccessories.length === 0 ? (
+                <span className="rounded-full bg-primary/10 px-3 py-0.5 text-[11px] font-medium text-primary">
+                  Seleccionado
+                </span>
+              ) : (
+                <span className="rounded-full bg-muted px-3 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  Quitar todos
+                </span>
+              )}
+            </div>
+          </button>
+        )}
         {filteredItems.map((item) => {
           const isOwned = ownedIds.has(item.id);
           const isEquipped = equippedIds.has(item.id);
@@ -265,7 +313,7 @@ export function ShopView({
             ? item.imageUrl.split("/")[2]?.replace(".json", "")
             : undefined;
 
-          return (
+  return (
             <button
               key={item.id}
               onClick={() => handleToggle(item)}
