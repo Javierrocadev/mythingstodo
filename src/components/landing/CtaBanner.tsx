@@ -22,7 +22,7 @@ export function CtaBanner() {
           </p>
         </div>
         <Link
-          href="/home"
+          href="/login"
           className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
         >
           Usar la app ahora

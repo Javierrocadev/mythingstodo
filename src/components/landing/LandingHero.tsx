@@ -159,7 +159,7 @@ export function LandingHero() {
           className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
         >
           <Link
-            href="/home"
+            href="/login"
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
             Usar la app
@@ -192,14 +192,7 @@ export function LandingHero() {
           </Link>
         </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-6 text-xs text-muted-foreground"
-        >
-          Sin registro · Tus tareas se guardan en el navegador
-        </motion.p>
+
       </div>
     </section>
   );
