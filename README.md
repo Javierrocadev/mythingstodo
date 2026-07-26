@@ -8,31 +8,36 @@ Tres palabras definen cada decisión del producto: **simple, rápida, sin culpa*
 
 ---
 
+## Slides presentación
+
+https://gamma.app/docs/MyThingsToDo-gjwl08qref4o6kr
+
 ## Stack tecnológico
 
-| Categoría          | Tecnología                                              |
-| ------------------ | ------------------------------------------------------- |
-| Framework          | Next.js 16 (App Router)                                 |
-| Lenguaje           | TypeScript                                              |
-| Estilos            | Tailwind CSS v4 + CSS variables semánticas (shadcn/ui)  |
-| Componentes        | shadcn/ui + Radix UI                                    |
-| Animaciones        | Framer Motion + Lottie                                  |
-| Base de datos      | PostgreSQL (Supabase)                                   |
-| ORM                | Prisma                                                  |
-| Autenticación      | NextAuth.js v5 (Google OAuth)                           |
-| IA                 | Vercel AI SDK + Google Gemini (ordenación de tareas)    |
-| Drag & Drop        | @dnd-kit                                                |
-| Fechas             | date-fns                                                |
-| Iconos             | HugeIcons                                               |
-| Testing            | Vitest                                                  |
-| Despliegue         | Vercel                                                  |
-| Notificaciones     | Sonner (toasts)                                         |
+| Categoría      | Tecnología                                             |
+| -------------- | ------------------------------------------------------ |
+| Framework      | Next.js 16 (App Router)                                |
+| Lenguaje       | TypeScript                                             |
+| Estilos        | Tailwind CSS v4 + CSS variables semánticas (shadcn/ui) |
+| Componentes    | shadcn/ui + Radix UI                                   |
+| Animaciones    | Framer Motion + Lottie                                 |
+| Base de datos  | PostgreSQL (Supabase)                                  |
+| ORM            | Prisma                                                 |
+| Autenticación  | NextAuth.js v5 (Google OAuth)                          |
+| IA             | Vercel AI SDK + Google Gemini (ordenación de tareas)   |
+| Drag & Drop    | @dnd-kit                                               |
+| Fechas         | date-fns                                               |
+| Iconos         | HugeIcons                                              |
+| Testing        | Vitest                                                 |
+| Despliegue     | Vercel                                                 |
+| Notificaciones | Sonner (toasts)                                        |
 
 ---
 
 ## Funcionalidades principales
 
 ### 📝 Gestión de tareas ("El Diario")
+
 - Creación de tareas en segundos: solo un campo de texto libre (título).
 - Urgencia predefinida: **NOW** / **TODAY** / **MARGIN** (botones, no texto libre).
 - Tipo emocional: **SATISFYING** / **NORMAL** / **BORING** / **DRAINING**.
@@ -40,34 +45,41 @@ Tres palabras definen cada decisión del producto: **simple, rápida, sin culpa*
 - Drag & drop para reordenar prioridad.
 
 ### 🤖 Ordenación inteligente con IA
+
 - Al añadir 3-4 tareas, un botón "Ordenar" invoca a Google Gemini.
 - La IA reclasifica tipo emocional y estima minutos.
 - Si falla o da timeout, cae automáticamente a un algoritmo heurístico determinista (sin que el usuario lo note).
 
 ### 🐱 Mascota virtual ("El Refugio")
+
 - Gato animado con Lottie que cambia de estado: **feliz** / **neutral** / **triste**.
 - El gato **nunca muere ni huye**. Como mucho se pone triste.
 - Frases motivacionales contextuales según su estado de ánimo.
 - Reacciona a eventos: completar tareas, subir de nivel, cambiar equipamiento.
 
 ### 🎮 Gamificación sin estrés
+
 - Monedas y XP por completar tareas (10 coins base + XP variable por urgencia).
 - Rachas diarias (streak) que motivan sin castigar.
 - Sistema de niveles y recompensas por hitos (cada 50 tareas completadas).
 - Sin barras de burnout visibles, sin métricas de fracaso, sin culpa.
 
 ### 🛒 Tienda
+
 - 4 categorías: Mascotas, Animaciones, Decoración, Accesorios.
 - Máximo 3 accesorios + 1 mascota + 1 animación equipados simultáneamente.
 - Skin gratuito por defecto asignado al completar el onboarding.
 
 ### 📅 Calendario
+
 - Vista propia con drag para reagendar tareas arrastrándolas entre días.
 
 ### 🏠 Landing page
+
 - Hero con el gato como protagonista, secciones explicativas y showcase interactivo de la tienda.
 
 ### 👤 Modo invitado
+
 - La app funciona sin login. Las tareas en modo invitado se migran a la cuenta al autenticarse.
 
 ---
@@ -191,7 +203,7 @@ app/ (Server Component)
 - Node.js 20+
 - PostgreSQL (o cuenta en Supabase/Neon)
 - Cuenta en Google Cloud Console (para OAuth)
-- API key de Google Gemini (opcional, la app funciona sin IA con fallback)
+- API key de Google Gemini (la app funciona sin IA con fallback)
 
 ### Pasos
 
@@ -242,16 +254,16 @@ Abrir [http://localhost:3000](http://localhost:3000).
 
 ### Comandos disponibles
 
-| Comando              | Descripción                           |
-| -------------------- | ------------------------------------- |
-| `npm run dev`        | Servidor de desarrollo                |
-| `npm run build`      | Build de producción                   |
-| `npm run start`      | Iniciar servidor de producción        |
-| `npm run lint`       | ESLint                                |
-| `npm test`           | Ejecutar tests (Vitest)               |
-| `npm run test:watch` | Tests en modo watch                   |
-| `npx prisma studio`  | Explorar base de datos                |
-| `npx prisma migrate` | Gestionar migraciones                 |
+| Comando              | Descripción                    |
+| -------------------- | ------------------------------ |
+| `npm run dev`        | Servidor de desarrollo         |
+| `npm run build`      | Build de producción            |
+| `npm run start`      | Iniciar servidor de producción |
+| `npm run lint`       | ESLint                         |
+| `npm test`           | Ejecutar tests (Vitest)        |
+| `npm run test:watch` | Tests en modo watch            |
+| `npx prisma studio`  | Explorar base de datos         |
+| `npx prisma migrate` | Gestionar migraciones          |
 
 ---
 
@@ -264,6 +276,7 @@ npm test
 ```
 
 Tests incluidos:
+
 - **task-score**: 11 tests (scoreTask con/sin deadline, tipos emocionales, ordenación heurística)
 - **pet-mood**: 6 tests (combinaciones de racha y progreso diario)
 - **equip-rules**: 7 tests (límites exactos de equipamiento)
@@ -274,14 +287,14 @@ Tests incluidos:
 
 El proyecto se desarrolló en **6 semanas** siguiendo un plan incremental. Cada semana construye sobre la anterior:
 
-| Semana | Qué se hizo                                                                                  |
-| ------ | -------------------------------------------------------------------------------------------- |
-| **1**  | Setup del proyecto, estructura de carpetas, Tailwind + shadcn/ui, modelo de datos (Prisma + PostgreSQL), autenticación con Google OAuth |
-| **2**  | Componentes visuales con datos mock (PetWidget, TaskCard, DragList, AppShell, ShopView, etc.) — todo el frontend sin backend real |
+| Semana | Qué se hizo                                                                                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1**  | Setup del proyecto, estructura de carpetas, Tailwind + shadcn/ui, modelo de datos (Prisma + PostgreSQL), autenticación con Google OAuth                             |
+| **2**  | Componentes visuales con datos mock (PetWidget, TaskCard, DragList, AppShell, ShopView, etc.) — todo el frontend sin backend real                                   |
 | **3**  | Lógica de dominio puro (`lib/core/`), Server Actions conectadas a BD real, integración con IA (Gemini para ordenar tareas), micro-interacciones con `useOptimistic` |
-| **4**  | Animaciones Framer Motion + Lottie (gato, confeti, transiciones), tests unitarios del dominio (Vitest), pulido visual |
-| **5**  | Landing page completa con showcase interactivo del gato y la tienda |
-| **6**  | Estadísticas numéricas en ajustes (sin gráficos, solo datos) |
+| **4**  | Animaciones Framer Motion + Lottie (gato, confeti, transiciones), tests unitarios del dominio (Vitest), pulido visual                                               |
+| **5**  | Landing page completa con showcase interactivo del gato y la tienda                                                                                                 |
+| **6**  | Estadísticas numéricas en ajustes (sin gráficos, solo datos)                                                                                                        |
 
 ### Filosofía de construcción
 

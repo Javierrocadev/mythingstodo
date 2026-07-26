@@ -42,22 +42,32 @@ export function HomeClient({
   const { tasks, toggleTask } = useOptimisticTasks(initialTasks);
   const [, startTransition] = useTransition();
   const [celebrating, setCelebrating] = useState(false);
+  const [completingIds, setCompletingIds] = useState<Set<string>>(new Set());
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  const completedToday = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr)).length;
+  const completedToday = tasks.filter(
+    (t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr),
+  ).length;
   const activeTask = tasks.find((t) => t.status !== "DONE") ?? null;
   const pendingTasks = tasks.filter((t) => t.status !== "DONE" && t.id !== activeTask?.id);
 
   const handleComplete = useCallback(
     (id: string) => {
-      const wasDone = initialTasks.find((t) => t.id === id)?.status === "DONE";
-      if (!wasDone) {
-        setCelebrating(true);
-        setTimeout(() => setCelebrating(false), 1500);
-      }
+      const task = initialTasks.find((t) => t.id === id);
+      if (task?.status === "DONE") return;
+
+      setCelebrating(true);
+      setTimeout(() => setCelebrating(false), 1500);
+      setCompletingIds((prev) => new Set(prev).add(id));
+
       startTransition(async () => {
-        toggleTask(id);
         const result = await completeTask(id);
+        setCompletingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        toggleTask(id);
         if (result?.milestoneCoins) {
           triggerRewardToast({ type: "milestone", coins: result.milestoneCoins });
         }
@@ -81,7 +91,12 @@ export function HomeClient({
 
       <div className="flex flex-col items-center gap-3">
         <ProgressBar
-          tasks={tasks.map((t) => ({ id: t.id, urgency: t.urgency, done: t.status === "DONE", completedAt: t.completedAt ?? null }))}
+          tasks={tasks.map((t) => ({
+            id: t.id,
+            urgency: t.urgency,
+            done: t.status === "DONE",
+            completedAt: t.completedAt ?? null,
+          }))}
         />
         <DailyEarningsCounter completedToday={completedToday} />
       </div>
@@ -91,7 +106,11 @@ export function HomeClient({
           {activeTask ? "Tu tarea activa" : "Todo listo ✨"}
         </h2>
         {activeTask ? (
-          <TaskCard task={activeTask} onComplete={handleComplete} />
+          <TaskCard
+            task={activeTask}
+            onComplete={handleComplete}
+            isCompleting={completingIds.has(activeTask.id)}
+          />
         ) : (
           <p className="text-muted-foreground text-sm">
             Has completado todas tus tareas. ¡Buen trabajo!
@@ -100,25 +119,24 @@ export function HomeClient({
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="font-heading text-sm font-semibold text-muted-foreground">
-          Más tareas
-        </h3>
+        <h3 className="font-heading text-sm font-semibold text-muted-foreground">Más tareas</h3>
         {pendingTasks.length > 0 ? (
           <div className="flex flex-col gap-2">
             {pendingTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onComplete={handleComplete} />
+              <TaskCard
+                key={task.id}
+                task={task}
+                onComplete={handleComplete}
+                isCompleting={completingIds.has(task.id)}
+              />
             ))}
           </div>
         ) : (
           activeTask && (
-            <p className="text-muted-foreground py-2 text-sm">
-              No hay más tareas pendientes
-            </p>
+            <p className="text-muted-foreground py-2 text-sm">No hay más tareas pendientes</p>
           )
         )}
       </section>
-
-
     </div>
   );
 }
