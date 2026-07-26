@@ -106,7 +106,7 @@ export function TaskCard({ task, onComplete, onEdit, isCompleting = false }: Tas
       </button>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <p
             className={`truncate text-sm font-medium ${
               isCompleting

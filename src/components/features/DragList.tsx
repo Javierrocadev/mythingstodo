@@ -82,7 +82,7 @@ function SortableTaskCard({
             <circle cx="15" cy="18" r="1.5" />
           </svg>
         </button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <TaskCard task={task} onComplete={onComplete} onEdit={onEdit} isCompleting={isCompleting} />
         </div>
       </div>
@@ -96,7 +96,7 @@ function SkeletonTaskCard() {
       <div className="flex items-center px-1">
         <div className="h-5 w-5 shrink-0" />
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-border/50">
           <div className="h-6 w-6 shrink-0 rounded-full bg-muted animate-pulse" />
           <div className="flex-1 space-y-2">

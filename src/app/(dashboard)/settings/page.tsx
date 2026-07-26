@@ -84,14 +84,14 @@ export default async function SettingsPage() {
             <p className="text-muted-foreground mb-4 text-xs font-medium uppercase tracking-wider">
               Completadas por urgencia
             </p>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               {stats.tasksByUrgency.map((t) => (
-                <BarRow
+                <StatBar
                   key={t.urgency}
                   label={URGENCY_LABEL[t.urgency] ?? t.urgency}
                   count={t.count}
                   max={stats.tasksByUrgency[0].count}
-                  color={URGENCY_COLORS[t.urgency]}
+                  style={URGENCY_ITEM[t.urgency]}
                 />
               ))}
             </div>
@@ -103,14 +103,14 @@ export default async function SettingsPage() {
             <p className="text-muted-foreground mb-4 text-xs font-medium uppercase tracking-wider">
               Completadas por tipo emocional
             </p>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               {stats.tasksByEmotionalType.map((t) => (
-                <BarRow
+                <StatBar
                   key={t.emotionalType}
                   label={EMOTION_LABEL[t.emotionalType] ?? t.emotionalType}
                   count={t.count}
                   max={stats.tasksByEmotionalType[0].count}
-                  color={EMOTION_COLORS[t.emotionalType]}
+                  style={EMOTION_ITEM[t.emotionalType]}
                 />
               ))}
             </div>
@@ -147,43 +147,44 @@ export default async function SettingsPage() {
   );
 }
 
-const URGENCY_COLORS: Record<string, string> = {
-  NOW: "bg-rose-400",
-  TODAY: "bg-amber-400",
-  MARGIN: "bg-emerald-400",
+const URGENCY_ITEM: Record<string, { color: string; bar: string; emoji: string }> = {
+  NOW: { color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30 ring-rose-200/60 dark:ring-rose-800/40", bar: "bg-rose-400", emoji: "🔴" },
+  TODAY: { color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30 ring-amber-200/60 dark:ring-amber-800/40", bar: "bg-amber-400", emoji: "🟡" },
+  MARGIN: { color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 ring-emerald-200/60 dark:ring-emerald-800/40", bar: "bg-emerald-400", emoji: "🟢" },
 };
 
-const EMOTION_COLORS: Record<string, string> = {
-  SATISFYING: "bg-emerald-400",
-  NORMAL: "bg-sky-400",
-  BORING: "bg-stone-400",
-  DRAINING: "bg-violet-400",
+const EMOTION_ITEM: Record<string, { color: string; bar: string; emoji: string }> = {
+  SATISFYING: { color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 ring-emerald-200/60 dark:ring-emerald-800/40", bar: "bg-emerald-400", emoji: "😊" },
+  NORMAL: { color: "text-sky-600 bg-sky-50 dark:bg-sky-950/30 ring-sky-200/60 dark:ring-sky-800/40", bar: "bg-sky-400", emoji: "😐" },
+  BORING: { color: "text-stone-600 bg-stone-50 dark:bg-stone-950/30 ring-stone-200/60 dark:ring-stone-800/40", bar: "bg-stone-400", emoji: "😴" },
+  DRAINING: { color: "text-violet-600 bg-violet-50 dark:bg-violet-950/30 ring-violet-200/60 dark:ring-violet-800/40", bar: "bg-violet-400", emoji: "😫" },
 };
 
-function BarRow({
+function StatBar({
   label,
   count,
   max,
-  color,
+  style,
 }: {
   label: string;
   count: number;
   max: number;
-  color: string;
+  style: { bar: string; emoji: string; color: string };
 }) {
   const pct = max > 0 ? Math.round((count / max) * 100) : 0;
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="w-28 shrink-0 text-sm font-medium">{label}</span>
-      <div className="flex flex-1 items-center gap-2">
-        <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
+    <div className={`flex items-center gap-3 rounded-xl px-4 py-3 ring-1 transition-all ${style.color}`}>
+      <span className="text-lg">{style.emoji}</span>
+      <span className="min-w-28 text-sm font-medium">{label}</span>
+      <div className="flex flex-1 items-center gap-3">
+        <div className="bg-muted/50 h-3 flex-1 overflow-hidden rounded-full">
           <div
-            className={`${color} h-full rounded-full transition-all`}
+            className={`${style.bar} h-full rounded-full transition-all`}
             style={{ width: `${pct}%` }}
           />
         </div>
-        <span className="font-display w-8 text-right text-sm font-bold tabular-nums">
+        <span className="font-display flex h-7 min-w-[2rem] items-center justify-center rounded-md bg-background px-2 text-sm font-bold tabular-nums shadow-sm ring-1 ring-border/50">
           {count}
         </span>
       </div>

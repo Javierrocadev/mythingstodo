@@ -15,43 +15,25 @@ const MILESTONES = [
 function TrophySvg({ earned }: { earned: boolean }) {
   return (
     <svg
-      viewBox="0 0 48 48"
+      viewBox="0 0 24 24"
       fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={`h-8 w-8 transition-all ${
         earned
           ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]"
           : "text-muted-foreground/25"
       }`}
     >
-      <path
-        d="M14 6h20v4c0 3.5-1 7-4 10-2 2-5 3.5-8 4-3-.5-6-2-8-4-3-3-4-6.5-4-10V6z"
-        fill="currentColor"
-        opacity={earned ? 1 : 0.6}
-      />
-      <rect x="17" y="28" width="14" height="5" rx="1" fill="currentColor" opacity={earned ? 1 : 0.6} />
-      <rect x="12" y="33" width="24" height="4" rx="2" fill="currentColor" opacity={earned ? 1 : 0.6} />
-      <path
-        d="M19 6l-3-4h16l-3 4"
-        fill="currentColor"
-        opacity={earned ? 1 : 0.6}
-      />
-      <path
-        d="M12 12c-2 1.5-4 3-4 5 0 2 1 3.5 2 4.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        opacity={earned ? 0.7 : 0.3}
-      />
-      <path
-        d="M36 12c2 1.5 4 3 4 5 0 2-1 3.5-2 4.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        opacity={earned ? 0.7 : 0.3}
-      />
-      {!earned && (
-        <rect x="10" y="10" width="28" height="28" rx="3" className="fill-background/60" />
-      )}
+      <path d="M7 3h10v4a5 5 0 0 1-10 0V3z" opacity={earned ? 1 : 0.5} />
+      <path d="M7 4H4.5A2.5 2.5 0 0 0 7 8" opacity={earned ? 1 : 0.5} />
+      <path d="M17 4h2.5A2.5 2.5 0 0 1 17 8" opacity={earned ? 1 : 0.5} />
+      <path d="M12 12v3" opacity={earned ? 1 : 0.5} />
+      <path d="M9 21h6" opacity={earned ? 1 : 0.5} />
+      <path d="M10 18h4" opacity={earned ? 1 : 0.5} />
+      <path d="M11 15h2" opacity={earned ? 1 : 0.5} />
     </svg>
   );
 }

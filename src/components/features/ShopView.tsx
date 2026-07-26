@@ -252,12 +252,12 @@ export function ShopView({
         </span>
       </div>
 
-      <nav className="flex gap-1.5 rounded-2xl bg-muted/50 p-1.5">
+      <nav className="flex flex-wrap gap-1.5 rounded-2xl bg-muted/50 p-1.5 sm:flex-nowrap">
         {categoryTabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-medium transition-all sm:px-3 sm:text-sm ${
               activeTab === tab.key
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
