@@ -19,7 +19,13 @@ import { DailyEarningsCounter } from "@/components/features/DailyEarningsCounter
 import { triggerRewardToast } from "@/components/features/RewardToast";
 import { useOptimisticTasks, type TaskData } from "@/hooks/useOptimisticTask";
 import { useDragOrder } from "@/hooks/useDragOrder";
-import { createTask, completeTask, updateTask, aiSuggestOrder, reorderAndEnrich } from "@/lib/actions/task.actions";
+import {
+  createTask,
+  completeTask,
+  updateTask,
+  aiSuggestOrder,
+  reorderAndEnrich,
+} from "@/lib/actions/task.actions";
 
 interface TasksClientProps {
   initialTasks: TaskData[];
@@ -44,7 +50,8 @@ export function TasksClient({
   effect,
   todayCompletedCount,
 }: TasksClientProps) {
-  const { tasks, toggleTask, addTask, replaceTask, swapTaskId, reorderVisible } = useOptimisticTasks(initialTasks);
+  const { tasks, toggleTask, addTask, replaceTask, swapTaskId, reorderVisible } =
+    useOptimisticTasks(initialTasks);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isOrdering, setIsOrdering] = useState(false);
@@ -53,115 +60,130 @@ export function TasksClient({
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [, startTransition] = useTransition();
   const { isDirty, setIsDirty, saveOrder } = useDragOrder();
-  const enrichedRef = useRef<Map<string, { emotionalType: string; estimatedMinutes: number | null }>>(new Map());
+  const enrichedRef = useRef<
+    Map<string, { emotionalType: string; estimatedMinutes: number | null }>
+  >(new Map());
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  const completedToday = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr)).length;
+  const completedToday = tasks.filter(
+    (t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr),
+  ).length;
   const todoTasks = tasks.filter((t) => t.status !== "DONE");
-  const doneTodayTasks = tasks.filter((t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr));
+  const doneTodayTasks = tasks.filter(
+    (t) => t.status === "DONE" && t.completedAt?.startsWith(todayStr),
+  );
   const totalCount = tasks.length;
   const taskWeights = { NOW: 3, TODAY: 2, MARGIN: 1 } as const;
   const totalWeight = tasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
   const completedWeight = doneTodayTasks.reduce((s, t) => s + taskWeights[t.urgency], 0);
   const completedCount = doneTodayTasks.length;
 
-  const handleComplete = useCallback((id: string) => {
-    const task = initialTasks.find((t) => t.id === id);
-    if (task?.status === "DONE") return;
+  const handleComplete = useCallback(
+    (id: string) => {
+      const task = initialTasks.find((t) => t.id === id);
+      if (task?.status === "DONE") return;
 
-    setCelebrating(true);
-    setTimeout(() => setCelebrating(false), 1500);
-    setCompletingIds((prev) => new Set(prev).add(id));
+      setCelebrating(true);
+      setTimeout(() => setCelebrating(false), 1500);
+      setCompletingIds((prev) => new Set(prev).add(id));
 
-    startTransition(async () => {
-      const result = await completeTask(id);
-      setCompletingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
+      startTransition(async () => {
+        const result = await completeTask(id);
+        setCompletingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        toggleTask(id);
+        if (result?.milestoneCoins) {
+          triggerRewardToast({ type: "milestone", coins: result.milestoneCoins });
+        }
       });
-      toggleTask(id);
-      if (result?.milestoneCoins) {
-        triggerRewardToast({ type: "milestone", coins: result.milestoneCoins });
-      }
-    });
-  }, [initialTasks, toggleTask]);
+    },
+    [initialTasks, toggleTask],
+  );
 
-  const handleReorder = useCallback((reordered: TaskData[]) => {
-    reorderVisible(reordered);
-    setIsDirty(true);
-  }, [reorderVisible, setIsDirty]);
+  const handleReorder = useCallback(
+    (reordered: TaskData[]) => {
+      reorderVisible(reordered);
+      setIsDirty(true);
+    },
+    [reorderVisible, setIsDirty],
+  );
 
   const handleEdit = useCallback((id: string) => {
     setEditingId(id);
     setShowForm(true);
   }, []);
 
-  const handleSave = useCallback((data: {
-    title: string;
-    urgency: "NOW" | "TODAY" | "MARGIN";
-    emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
-    deadline?: string;
-    estimatedMinutes?: number;
-  }) => {
-    if (editingId) {
-      startTransition(() => {
-        replaceTask({
-          id: editingId,
-          title: data.title,
-          urgency: data.urgency,
-          emotionalType: data.emotionalType,
-          estimatedMinutes: data.estimatedMinutes ?? null,
-          deadline: data.deadline ?? null,
-          status: "TODO",
+  const handleSave = useCallback(
+    (data: {
+      title: string;
+      urgency: "NOW" | "TODAY" | "MARGIN";
+      emotionalType: "SATISFYING" | "NORMAL" | "BORING" | "DRAINING";
+      deadline?: string;
+      estimatedMinutes?: number;
+    }) => {
+      if (editingId) {
+        startTransition(() => {
+          replaceTask({
+            id: editingId,
+            title: data.title,
+            urgency: data.urgency,
+            emotionalType: data.emotionalType,
+            estimatedMinutes: data.estimatedMinutes ?? null,
+            deadline: data.deadline ?? null,
+            status: "TODO",
+          });
+          updateTask(editingId, {
+            title: data.title,
+            urgency: data.urgency,
+            emotionalType: data.emotionalType,
+            estimatedMinutes: data.estimatedMinutes ?? null,
+            deadline: data.deadline ? new Date(data.deadline) : null,
+          });
         });
-        updateTask(editingId, {
+        setShowForm(false);
+        setEditingId(null);
+      } else {
+        const tempId = `temp-${Date.now()}`;
+        const savedAt = Date.now();
+        setSavingIds((prev) => new Set(prev).add(tempId));
+        setShowForm(false);
+        setEditingId(null);
+
+        createTask({
           title: data.title,
           urgency: data.urgency,
           emotionalType: data.emotionalType,
           estimatedMinutes: data.estimatedMinutes ?? null,
           deadline: data.deadline ? new Date(data.deadline) : null,
-        });
-      });
-      setShowForm(false);
-      setEditingId(null);
-    } else {
-      const tempId = `temp-${Date.now()}`;
-      const savedAt = Date.now();
-      setSavingIds((prev) => new Set(prev).add(tempId));
-      setShowForm(false);
-      setEditingId(null);
-
-      createTask({
-        title: data.title,
-        urgency: data.urgency,
-        emotionalType: data.emotionalType,
-        estimatedMinutes: data.estimatedMinutes ?? null,
-        deadline: data.deadline ? new Date(data.deadline) : null,
-      }).then((realId) => {
-        const elapsed = Date.now() - savedAt;
-        const remaining = Math.max(0, 500 - elapsed);
-        setTimeout(() => {
-          setSavingIds((prev) => {
-            const next = new Set(prev);
-            next.delete(tempId);
-            return next;
-          });
-          if (realId) {
-            addTask({
-              id: realId,
-              title: data.title,
-              urgency: data.urgency,
-              emotionalType: data.emotionalType,
-              estimatedMinutes: data.estimatedMinutes ?? null,
-              deadline: data.deadline ?? null,
-              status: "TODO",
+        }).then((realId) => {
+          const elapsed = Date.now() - savedAt;
+          const remaining = Math.max(0, 500 - elapsed);
+          setTimeout(() => {
+            setSavingIds((prev) => {
+              const next = new Set(prev);
+              next.delete(tempId);
+              return next;
             });
-          }
-        }, remaining);
-      });
-    }
-  }, [editingId, addTask, replaceTask]);
+            if (realId) {
+              addTask({
+                id: realId,
+                title: data.title,
+                urgency: data.urgency,
+                emotionalType: data.emotionalType,
+                estimatedMinutes: data.estimatedMinutes ?? null,
+                deadline: data.deadline ?? null,
+                status: "TODO",
+              });
+            }
+          }, remaining);
+        });
+      }
+    },
+    [editingId, addTask, replaceTask],
+  );
 
   const handleAiOrder = useCallback(() => {
     setIsOrdering(true);
@@ -169,7 +191,10 @@ export function TasksClient({
       try {
         const suggested = await aiSuggestOrder();
         enrichedRef.current = new Map(
-          suggested.map((t) => [t.id, { emotionalType: t.emotionalType, estimatedMinutes: t.estimatedMinutes }]),
+          suggested.map((t) => [
+            t.id,
+            { emotionalType: t.emotionalType, estimatedMinutes: t.estimatedMinutes },
+          ]),
         );
         reorderVisible(suggested as TaskData[]);
         setIsDirty(true);
@@ -204,24 +229,33 @@ export function TasksClient({
     }
   }, [todoTasks, saveOrder]);
 
-  const currentMood =
-    completedCount >= totalCount
-      ? "HAPPY"
-      : petMood;
+  const currentMood = completedCount >= totalCount ? "HAPPY" : petMood;
 
   return (
-    <div className="flex flex-col gap-4 py-4">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-4 pb-4 pt-2 sm:pt-4">
+      <div className="mb-12 flex items-center justify-between sm:mb-0">
         <StreakIndicator currentStreak={currentStreak} longestStreak={longestStreak} />
       </div>
 
       <div className="flex justify-center">
-        <PetWidget mood={currentMood} petType={petType} accessories={accessories} decoration={decoration ?? undefined} effect={effect} celebrating={celebrating} />
+        <PetWidget
+          mood={currentMood}
+          petType={petType}
+          accessories={accessories}
+          decoration={decoration ?? undefined}
+          effect={effect}
+          celebrating={celebrating}
+        />
       </div>
 
       <div className="flex flex-col items-center gap-3">
         <ProgressBar
-          tasks={tasks.map((t) => ({ id: t.id, urgency: t.urgency, done: t.status === "DONE", completedAt: t.completedAt ?? null }))}
+          tasks={tasks.map((t) => ({
+            id: t.id,
+            urgency: t.urgency,
+            done: t.status === "DONE",
+            completedAt: t.completedAt ?? null,
+          }))}
         />
         <DailyEarningsCounter completedToday={completedToday} />
       </div>
@@ -244,13 +278,15 @@ export function TasksClient({
                   editingId
                     ? (() => {
                         const t = tasks.find((t) => t.id === editingId);
-                        return t ? {
-                          title: t.title,
-                          urgency: t.urgency,
-                          emotionalType: t.emotionalType,
-                          deadline: t.deadline ?? undefined,
-                          estimatedMinutes: t.estimatedMinutes,
-                        } : undefined;
+                        return t
+                          ? {
+                              title: t.title,
+                              urgency: t.urgency,
+                              emotionalType: t.emotionalType,
+                              deadline: t.deadline ?? undefined,
+                              estimatedMinutes: t.estimatedMinutes,
+                            }
+                          : undefined;
                       })()
                     : undefined
                 }

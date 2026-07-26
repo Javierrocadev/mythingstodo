@@ -74,7 +74,7 @@ export function AppShell({
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-dvh w-full flex-col bg-background">
+    <div className="flex h-dvh w-full flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
           <img src="/nav-cat.svg" alt="" className="h-7 w-auto" />
